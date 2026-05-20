@@ -20,6 +20,13 @@
   "author": "sarsxe",
   "license": "MIT",
   "dependencies": {
-    "NeteaseCloudMusicApi": "^4.30.0"
+    "NeteaseCloudMusicApi": "^3.47.5"
+  },
+  "overrides": {
+    "axios": "^1.8.0",
+    "ip": "^2.0.1",
+    "degenerator": "^5.0.0",
+    "@tootallnate/once": "^3.0.0",
+    "pac-resolver": "^7.0.0"
   }
 }
