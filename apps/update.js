@@ -71,9 +71,9 @@ export class update extends plugin {
       return false
     }
 
-    const npmRet = await runCmd('npm install')
+    const npmRet = await runCmd('pnpm install')
     if (npmRet.error) {
-      await this.reply('代码已更新，但 npm install 执行失败，请手动检查依赖')
+      await this.reply('代码已更新，但 pnpm install 执行失败，请手动检查依赖')
       await this.reply((npmRet.stderr || npmRet.stdout || String(npmRet.error)).slice(0, 1000))
       return false
     }

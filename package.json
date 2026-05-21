@@ -1,6 +1,6 @@
 {
   "name": "ncmapi-plugin",
-  "version": "1.1.4.51.4",
+  "version": "1.1.45.1.4",
   "description": "Self-hosted NeteaseCloudMusicApi service and Yunzai plugin updater",
   "type": "module",
   "main": "index.js",
@@ -20,7 +20,7 @@
   "author": "sarsxe",
   "license": "MIT",
   "dependencies": {
-    "NeteaseCloudMusicApi": "4.30.0"
+    "NeteaseCloudMusicApi": "4.32.0"
   },
   "overrides": {
     "axios": "^1.8.0",
