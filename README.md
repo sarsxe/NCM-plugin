@@ -41,7 +41,7 @@
 
 - 完全不依赖第三方 API 服务器
 - 支持全部 NeteaseCloudMusicApi 接口
-- 本地运行于 127.0.0.1:3000，安全且快速
+- 本地运行于 127.0.0.1:3030，安全且快速
 - 随Yunzai托管，自动重启，开机自启
 <details><summary> You can still survive after restarting,unlike your will to learn. </summary>
 
@@ -95,12 +95,12 @@ cd /root/Yunzai/plugins/NCMApi-plugin
 node start.js
 ```
 
-服务默认运行在 http://127.0.0.1:3000
+服务默认运行在 http://127.0.0.1:3030
 
 快速验证:
 
 ```sh
-curl http://127.0.0.1:3000/search?keywords=hello
+curl http://127.0.0.1:3030/search?keywords=hello
 ```
 
 ## 功能介绍
@@ -147,7 +147,10 @@ curl http://127.0.0.1:3000/search?keywords=hello
 | ---- | ---- |
 | #NCM版本 | 查看插件版本信息 |
 | #NCM更新 | 更新插件并安装依赖 |
+| #NCM状态 | NCMApi 运行状态查看 |
+| #NCM端口变更 |本地api转发端口更改 |
 | #NCM强制更新 | 放弃本地修改后强制更新 |
+| #NCM更新/安装api*** | NeteaseCloudMusicApi 依赖安装与更新 |
 
 说明：
 
@@ -167,7 +170,7 @@ true
 neteaseCloudAPIServer:
 
 ```sh
-http://127.0.0.1:3000
+http://127.0.0.1:3030
 ```
 
 
@@ -188,7 +191,7 @@ http://127.0.0.1:3000
 | ---- | ---- |
 | Node.js | 运行环境 |
 | Express | Web 框架 |
-| NeteaseCloudMusicApi v4.30.0 | 核心 API 模块 |
+| NeteaseCloudMusicApi v4.32.0 | 核心 API 模块 |
 | Your sanity | Troubleshooting at 3 AM |
 
 ## Acknowledgements 致谢
