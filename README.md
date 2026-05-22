@@ -154,7 +154,7 @@ curl http://127.0.0.1:3030/search?keywords=hello
 
 说明：
 
-- 更新命令会执行 git pull --no-rebase 和 npm install
+- 更新命令会执行 git pull --no-rebase 和 pnpm install
 - 更新完成后，请重启 Yunzai，使插件代码与内置 NCM API 服务一起生效
 - 不再依赖单独的 pm2 restart NeteaseCloudMusicApi
 ## 对接配置示例
@@ -177,7 +177,7 @@ http://127.0.0.1:3030
 ## 项目结构
 
     NCMApi-plugin/
-    |-- apps/
+    |-- apps/                # NCMApi-plugin指令触发区域
     |-- service.js           # 本地 NCM API 启动封装与单例保护
     |-- index.js             # Yunzai 插件入口，随 Yunzai 自动启动服务
     |-- start.js             # 兼容独立启动入口
