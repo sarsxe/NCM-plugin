@@ -72,7 +72,7 @@ cd /root/Yunzai/plugins/NCMApi-plugin
 3. 安装依赖
 
 ```sh
-npm install
+pnpm install
 ```
 
 
