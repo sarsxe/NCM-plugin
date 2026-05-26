@@ -1,6 +1,6 @@
 {
   "name": "ncmapi-plugin",
-  "version": "1.1.4.514",
+  "version": "1.1.45.1.4",
   "description": "Self-hosted NeteaseCloudMusicApi service and Yunzai plugin updater",
   "type": "module",
   "main": "index.js",
