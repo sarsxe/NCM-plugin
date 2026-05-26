@@ -1,0 +1,32 @@
+{
+  "name": "ncmapi-plugin",
+  "version": "1.1.45.1.4",
+  "description": "Self-hosted NeteaseCloudMusicApi service and Yunzai plugin updater",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node start.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sarsxe/NCMApi-plugin.git"
+  },
+  "keywords": [
+    "netease",
+    "music",
+    "api",
+    "Yunzai-Bot"
+  ],
+  "author": "sarsxe",
+  "license": "MIT",
+  "dependencies": {
+    "NeteaseCloudMusicApi": "4.32.0"
+  },
+  "overrides": {
+    "axios": "^1.8.0",
+    "ip": "^2.0.1",
+    "degenerator": "^5.0.0",
+    "@tootallnate/once": "^3.0.0",
+    "pac-resolver": "^7.0.0"
+  }
+}
