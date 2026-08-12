@@ -14,5 +14,3 @@ node_modules/
 # macOS
 .DS_Store
 
-# sensitive config (contains cookies/tokens)
-data/config.json
