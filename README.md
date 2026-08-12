@@ -6,15 +6,15 @@
 
 <div align=center>
 
-# NeteaseCloudMusicApi
+# NCM-plugin
 
-**网易云音乐 Node.js API 自建部署服务**
+**双管乐 · 网易云 & 酷狗 · API 自建部署服务**
 
 <br>
 
 ![Nodejs](https://img.shields.io/badge/-Node.js-3C873A?style=flat&logo=Node.js&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/-JavaScript-eed718?style=flat&logo=javascript&logoColor=ffffff)
-[![license](https://img.shields.io/github/license/sarsxe/NCMApi-plugin.svg?style=flat)](https://github.com/sarsxe/NCMApi-plugin/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/sarsxe/NCM-plugin.svg?style=flat)](https://github.com/sarsxe/NCM-plugin/blob/main/LICENSE)
 ![version](https://img.shields.io/badge/version-1.0.0-blue)
 
 </div>
@@ -30,7 +30,13 @@
 - 你凝视虚空，虚空也凝视着你
 - 果然你依赖的第三方 API 挂了，而你对此无能为力
 
-这个仓库正是那场存在午夜危机的结果。基于 NeteaseCloudMusicApi 的自建部署方案，在本地里你能控制、维护并信任它（希望如此）。
+这个仓库正是那场存在午夜危机的结果。基于 NeteaseCloudMusicApi 与 KuGouMusicApi 的自建部署方案，在本地里你能控制、维护并信任它（希望如此）。
+
+<details><summary> Two pipes, zero worries. </summary>
+
+- 双管乐一吹，烦恼全飞，歌单里全是晴天
+
+</details>
 
 ## 免责声明 ❗
 
@@ -41,7 +47,10 @@
 
 - 完全不依赖第三方 API 服务器
 - 支持全部 NeteaseCloudMusicApi 接口
-- 本地运行于 127.0.0.1:3030，安全且快速
+- 支持酷狗音乐 KuGouMusicApi 接口
+- 网易云本地运行于 127.0.0.1:3030，
+- 酷狗本地运行于 127.0.0.1:3040，安全且快速
+- 双平台扫码登录，Cookie 统一管理，会员信息一键查询
 - 随Yunzai托管，自动重启，开机自启
 <details><summary> You can still survive after restarting,unlike your will to learn. </summary>
 
@@ -60,13 +69,13 @@ cd /root/Yunzai
 使用 GitHub:
 
 ```sh
-git clone --depth=1 https://github.com/sarsxe/NCMApi-plugin.git ./plugins/NCMApi-plugin
+git clone --depth=1 https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
 ```
 
 2. 进入项目
 
 ```sh
-cd /root/Yunzai/plugins/NCMApi-plugin
+cd /root/Yunzai/plugins/NCM-plugin
 ```
 
 3. 安装依赖
@@ -88,19 +97,24 @@ pnpm install
 如需单独调试，可执行：
 
 ```sh
-cd /root/Yunzai/plugins/NCMApi-plugin
+cd /root/Yunzai/plugins/NCM-plugin
 ```
 
 ```sh
 node start.js
 ```
 
-服务默认运行在 http://127.0.0.1:3030
+网易云服务默认运行在 http://127.0.0.1:3030，  
+而酷狗服务默认运行在 http://127.0.0.1:3040。
 
 快速验证:
 
 ```sh
 curl http://127.0.0.1:3030/search?keywords=hello
+```
+
+```sh
+curl http://127.0.0.1:3040/search?keywords=hello
 ```
 
 ## 功能介绍
@@ -129,6 +143,25 @@ curl http://127.0.0.1:3030/search?keywords=hello
 
 </details>
 
+<details>
+<summary>酷狗 API 接口（点击展开）</summary>
+
+| 接口 | 说明 |
+| ---- | ---- |
+| /search?keywords=xxx | 搜索歌曲 |
+| /song/url?id=xxx | 获取歌曲播放链接 |
+| /song/detail?id=xxx | 获取歌曲详情 |
+| /lyric?id=xxx | 获取歌词 |
+| /playlist/detail?id=xxx | 获取歌单详情 |
+| /user/detail | 获取账号信息 |
+| /user/vip/detail | 获取会员状态 |
+| /login/qr/key | 扫码登录-获取二维码 |
+| /login/qr/check | 扫码登录-检查状态 |
+
+完整接口文档请参考：[KuGouMusicApi 文档](https://github.com/MakcRe/KuGouMusicApi)
+
+</details>
+
 ### 音质等级
 
 | 等级 | 说明 |
@@ -146,10 +179,15 @@ curl http://127.0.0.1:3030/search?keywords=hello
 | 命令 | 说明 |
 | ---- | ---- |
 | #NCM版本 | 查看插件版本信息 |
+| #NCM酷狗登录 | 酷狗扫码登录 |
+| #NCM网易登录 | 网易云扫码登录 |
 | #NCM更新 | 更新插件并安装依赖 |
 | #NCM状态 | NCMApi 运行状态查看 |
+| #NCM帮助 | 显示帮助信息（图片版） |
 | #NCM端口变更 |本地api转发端口更改 |
+| #NCM酷狗信息 | 查看酷狗账号/会员状态 |
 | #NCM强制更新 | 放弃本地修改后强制更新 |
+| #NCM网易云信息 | 查看网易云账号/会员状态 |
 | #NCM更新/安装api*** | NeteaseCloudMusicApi 依赖安装与更新 |
 
 说明：
@@ -176,9 +214,12 @@ http://127.0.0.1:3030
 
 ## 项目结构
 
-    NCMApi-plugin/
-    |-- apps/                # NCMApi-plugin指令触发区域
-    |-- service.js           # 本地 NCM API 启动封装与单例保护
+    NCM-plugin/
+    |-- apps/                # NCM-plugin指令触发区域
+    |-- lib/                 # 核心服务与业务逻辑
+    |-- data/                # 配置与模板资源
+    |-- resources/           # 酷狗 API 服务端
+    |-- guoba/               # 锅巴面板适配
     |-- index.js             # Yunzai 插件入口，随 Yunzai 自动启动服务
     |-- start.js             # 兼容独立启动入口
     |-- package.json         # 项目配置及依赖
@@ -191,12 +232,14 @@ http://127.0.0.1:3030
 | ---- | ---- |
 | Node.js | 运行环境 |
 | Express | Web 框架 |
-| NeteaseCloudMusicApi v4.32.0 | 核心 API 模块 |
+| NeteaseCloudMusicApi v4.32.0 | 网易云核心 API 模块 |
+| KuGouMusicApi | 酷狗核心 API 模块 |
 | Your sanity | Troubleshooting at 3 AM |
 
 ## Acknowledgements 致谢
 
 - [NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi) ——让这一切成为可能的起源项目
+- [KuGouMusicApi](https://github.com/MakcRe/KuGouMusicApi) ——感谢 MakcRe 提供的酷狗音乐开源项目，让双管乐得以完整
 - [Yunzai-Bot](https://github.com/Le-niao/Yunzai-Bot) -- 让服务永远活下去
 
 ## License 许可证

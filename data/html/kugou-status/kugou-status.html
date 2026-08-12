@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>酷狗账号信息</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { padding: 22px; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; position: relative; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+.background-layer { position: absolute; inset: 0; background-image: linear-gradient(135deg, rgba(102,126,234,0.75) 0%, rgba(118,75,162,0.75) 100%), url("{{backdrop}}"); background-color: #667eea; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -2; }
+.background-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.05) 100%); z-index: -1; }
+body.landscape { width: max-content; min-width: 100%; }
+body.landscape .card { max-width: 616px; }
+/* 整体尺寸按 110% 超采样提升截图清晰度 */
+.card { background: #fff; border-radius: 18px; padding: 26px; max-width: 462px; margin: 0 auto; box-shadow: 0 9px 35px rgba(0,0,0,0.15); }
+.header { display: flex; align-items: center; margin-bottom: 22px; }
+.avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid #24BBF9; }
+.user-info { margin-left: 15px; flex: 1; min-width: 0; }
+.nickname { font-size: 20px; font-weight: 700; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uid { font-size: 13px; color: #999; margin-top: 4px; }
+.platform-tag { display: inline-block; background: #24BBF9; color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 11px; margin-top: 5px; }
+.vip-section { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border-radius: 13px; padding: 18px; margin-bottom: 18px; }
+.vip-section.inactive { background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%); }
+.vip-title { font-size: 22px; font-weight: 700; color: #fff; }
+.vip-state { display: inline-block; background: rgba(255,255,255,0.3); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 9px; margin-left: 9px; }
+.vip-subtitle { font-size: 14px; color: rgba(255,255,255,0.9); margin-top: 7px; }
+.vip-expire { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+.stats { display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #f0f0f0; }
+.stat-item { text-align: center; }
+.stat-value { font-size: 20px; font-weight: 700; color: #333; }
+.stat-label { font-size: 13px; color: #999; margin-top: 2px; }
+.footer { text-align: center; font-size: 12px; color: #bbb; margin-top: 13px; }
+</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="background-layer"></div>
+<div class="background-overlay"></div>
+<div class="card">
+  <div class="header">
+    <img class="avatar" src="{{avatarUrl}}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22%3E%3Crect width=%22240%22 height=%22240%22 rx=%22120%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 font-size=%2276%22 fill=%22%2324BBF9%22%3EKG%3C/text%3E%3C/svg%3E'">
+    <div class="user-info">
+      <div class="nickname">{{nickname}}</div>
+      <div class="uid">UID: {{uid}}</div>
+      <span class="platform-tag">酷狗音乐</span>
+    </div>
+  </div>
+  <div class="vip-section{{if !hasActiveVip}} inactive{{/if}}">
+    <span class="vip-title">{{vipTitle}}</span>
+    <span class="vip-state">{{vipStateText}}</span>
+    <div class="vip-subtitle">{{vipSubtitle}}</div>
+    <div class="vip-expire">{{vipExpireText}}</div>
+  </div>
+  <div class="stats">
+    {{each stats item}}
+    <div class="stat-item">
+      <div class="stat-value">{{item.value}}</div>
+      <div class="stat-label">{{item.label}}</div>
+    </div>
+    {{/each}}
+  </div>
+  <div class="footer">NCM-plugin | 酷狗账号信息</div>
+</div>
+
+</body>
+</html>

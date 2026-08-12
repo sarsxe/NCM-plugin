@@ -3,9 +3,9 @@ import path from 'node:path'
 import { exec, execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const pluginDir = 'NCMApi-plugin'
+const pluginDir = 'NCM-plugin'
 const pluginPath = fileURLToPath(new URL('../', import.meta.url))
-const tempBackupDir = path.join(pluginPath, '../../temp/ncmapi-update-tmp')
+const tempBackupDir = path.join(pluginPath, '../../temp/ncm-plugin-update-tmp')
 
 function runCmd(command, options = {}) {
   return new Promise(resolve => {
@@ -66,7 +66,7 @@ async function copyFiles(srcDir, destDir, specificFiles = []) {
       }
     }
   } catch (err) {
-    logger.error(`[NCMApi-plugin][拷贝文件] 失败: ${err.message}`)
+    logger.error(`[NCM-plugin][拷贝文件] 失败: ${err.message}`)
     throw err
   }
 }
@@ -91,7 +91,7 @@ async function deleteFolderRecursive(folderPath) {
       }
     }
   } catch (err) {
-    logger.error(`[NCMApi-plugin][清理临时文件] 失败: ${err.message}`)
+    logger.error(`[NCM-plugin][清理临时文件] 失败: ${err.message}`)
     throw err
   }
 }
@@ -99,8 +99,8 @@ async function deleteFolderRecursive(folderPath) {
 export class update extends plugin {
   constructor() {
     super({
-      name: 'NCMApi插件更新',
-      dsc: 'NCMApi-plugin 更新与版本管理',
+      name: '双管乐·API插件更新',
+      dsc: 'NCM-plugin 双管乐·API 更新与版本管理',
       event: 'message',
       priority: 4000,
       rule: [
@@ -115,7 +115,7 @@ export class update extends plugin {
     const packageJsonPath = path.join(pluginPath, 'package.json')
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
     const msg = [
-      'NCMApi-plugin 版本信息',
+      'NCM-plugin 版本信息',
       '版本号：' + (packageJson.version || 'unknown'),
       'Commit：' + this.getCommitId(),
       '时间：' + this.getTime(),
@@ -134,7 +134,7 @@ export class update extends plugin {
 
     const isForce = this.e.msg.includes('强制')
     this.oldCommitId = this.getCommitId()
-    await this.reply('正在执行 NCMApi-plugin 更新，请稍等')
+    await this.reply('正在执行 NCM-plugin 更新，请稍等')
 
     // 备份 data 目录
     const dataDir = path.join(pluginPath, 'data')
@@ -145,9 +145,9 @@ export class update extends plugin {
         await deleteFolderRecursive(tempBackupDir)
         await copyFiles(dataDir, tempBackupDir)
         backupSuccess = true
-        logger.mark('[NCMApi-plugin] data 目录备份成功')
+        logger.mark('[NCM-plugin] data 目录备份成功')
       } catch (err) {
-        logger.error(`[NCMApi-plugin] data 目录备份失败: ${err.message}`)
+        logger.error(`[NCM-plugin] data 目录备份失败: ${err.message}`)
         await this.reply('data 目录备份失败，更新已中止，请检查权限或磁盘空间')
         return false
       }
@@ -165,7 +165,7 @@ export class update extends plugin {
             await deleteFolderRecursive(tempBackupDir)
             await this.reply('已恢复 data 目录备份')
           } catch (err) {
-            logger.error(`[NCMApi-plugin] 恢复 data 目录失败: ${err.message}`)
+            logger.error(`[NCM-plugin] 恢复 data 目录失败: ${err.message}`)
           }
         }
         return false
@@ -183,7 +183,7 @@ export class update extends plugin {
           await deleteFolderRecursive(tempBackupDir)
           await this.reply('已恢复 data 目录备份')
         } catch (err) {
-          logger.error(`[NCMApi-plugin] 恢复 data 目录失败: ${err.message}`)
+          logger.error(`[NCM-plugin] 恢复 data 目录失败: ${err.message}`)
         }
       }
       return false
@@ -201,7 +201,7 @@ export class update extends plugin {
           await deleteFolderRecursive(tempBackupDir)
           await this.reply('已恢复 data 目录备份')
         } catch (err) {
-          logger.error(`[NCMApi-plugin] 恢复 data 目录失败: ${err.message}`)
+          logger.error(`[NCM-plugin] 恢复 data 目录失败: ${err.message}`)
         }
       }
       return false
@@ -210,20 +210,20 @@ export class update extends plugin {
     const time = this.getTime()
     const pullOutput = String(pullRet.stdout || '') + '\n' + String(pullRet.stderr || '')
     if (/Already up[ -]to[ -]date|已经是最新/i.test(pullOutput)) {
-      await this.reply('NCMApi-plugin 已经是最新版本，最后更新时间：' + time)
+      await this.reply('NCM-plugin 已经是最新版本，最后更新时间：' + time)
       // 清理临时备份
       if (backupSuccess) {
         try {
           await deleteFolderRecursive(tempBackupDir)
         } catch (err) {
-          logger.error(`[NCMApi-plugin] 清理临时备份失败: ${err.message}`)
+          logger.error(`[NCM-plugin] 清理临时备份失败: ${err.message}`)
         }
       }
       return true
     }
 
     await this.reply([
-      'NCMApi-plugin 更新成功',
+      'NCM-plugin 更新成功',
       '最后更新时间：' + time,
       '依赖已安装，请重启 Yunzai 使更新与内置 NCM API 服务生效'
     ].join('\n'))
@@ -231,7 +231,7 @@ export class update extends plugin {
     // 获取更新日志并以转发消息形式发送
     const log = this.getLog()
     if (log) {
-      const forwardMsg = await this.makeForwardMsg('NCMApi-plugin 更新日志', log, '')
+      const forwardMsg = await this.makeForwardMsg('NCM-plugin 更新日志', log, '')
       if (forwardMsg) await this.reply(forwardMsg)
     }
 
@@ -239,9 +239,9 @@ export class update extends plugin {
     if (backupSuccess) {
       try {
         await deleteFolderRecursive(tempBackupDir)
-        logger.mark('[NCMApi-plugin] 临时备份已清理')
+        logger.mark('[NCM-plugin] 临时备份已清理')
       } catch (err) {
-        logger.error(`[NCMApi-plugin] 清理临时备份失败: ${err.message}`)
+        logger.error(`[NCM-plugin] 清理临时备份失败: ${err.message}`)
       }
     }
 
@@ -331,7 +331,7 @@ export class update extends plugin {
     } else {
       return msg
     }
-    let dec = 'NCMApi-plugin 更新日志'
+    let dec = 'NCM-plugin 更新日志'
     /** 处理描述 */
     if (typeof (forwardMsg.data) === 'object') {
       let detail = forwardMsg.data?.meta?.detail
@@ -351,7 +351,7 @@ export class update extends plugin {
     const errMsg = err ? String(err) : ''
     const out = stdout ? String(stdout) : ''
     const errOut = stderr ? String(stderr) : ''
-    let msg = 'NCMApi-plugin 更新失败'
+    let msg = 'NCM-plugin 更新失败'
     if (errMsg.includes('Timed out')) msg += '\n连接超时'
     else if (/Failed to connect|unable to access/i.test(errMsg)) msg += '\n连接失败'
     else if (errMsg.includes('be overwritten by merge') || out.includes('CONFLICT') || errOut.includes('CONFLICT')) {

@@ -1,7 +1,7 @@
 {
   "name": "ncmapi-plugin",
-  "version": "1.1.45.1.4",
-  "description": "Self-hosted NeteaseCloudMusicApi service and Yunzai plugin updater",
+  "version": "1.14.5.14",
+  "description": "NCM-plugin: DualMusic·API for Yunzai-Bot",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,9 @@
   "author": "sarsxe",
   "license": "MIT",
   "dependencies": {
-    "NeteaseCloudMusicApi": "4.32.0"
+    "NeteaseCloudMusicApi": "latest",
+    "express": "4.18.2",
+    "sharp": "^0.35.3"
   },
   "overrides": {
     "axios": "^1.8.0",

@@ -9,8 +9,8 @@ import {
 export class ncmDep extends plugin {
   constructor() {
     super({
-      name: 'NCMApi依赖管理',
-      dsc: 'NeteaseCloudMusicApi 依赖安装与更新',
+      name: '双管乐·API依赖管理',
+      dsc: 'NCM-plugin 双管乐·API 依赖安装与更新',
       event: 'message',
       priority: 4000,
       rule: [
@@ -51,7 +51,7 @@ export class ncmDep extends plugin {
     ].join('\n')
     await this.reply(msg)
 
-    await this.reply('正在重启 NCMApi 服务...')
+    await this.reply('正在重启网易云API服务...')
     const restart = await restartService()
     if (restart.success) {
       await this.reply('服务重启成功')
@@ -91,7 +91,7 @@ export class ncmDep extends plugin {
     const after = getInstalledVersion()
     await this.reply('更新完成，当前版本：' + (after || 'unknown'))
 
-    await this.reply('正在重启 NCMApi 服务...')
+    await this.reply('正在重启网易云API服务...')
     const restart = await restartService()
     if (restart.success) {
       await this.reply('服务重启成功')

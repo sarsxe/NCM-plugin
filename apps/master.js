@@ -7,8 +7,8 @@ import {
 export class ncmMaster extends plugin {
   constructor() {
     super({
-      name: 'NCMApi主人设置',
-      dsc: 'NCMApi 备用主人设置（验证码机制）',
+      name: '双管乐·API主人设置',
+      dsc: 'NCM-plugin 双管乐·API 备用主人设置（验证码机制）',
       event: 'message',
       priority: 4000,
       rule: [
@@ -39,13 +39,13 @@ export class ncmMaster extends plugin {
     // 向用户私聊发送验证码
     if (this.e.isGroup || this.e.group_id) {
       try {
-        await this.e.bot.pickUser(userId).sendMsg('NCMApi 设置主人验证码：' + code + '\n有效期5分钟，请在群内回复 #ncm设置主人验证码<验证码>')
+        await this.e.bot.pickUser(userId).sendMsg('双管乐·API 设置主人验证码：' + code + '\n有效期5分钟，请在群内回复 #ncm设置主人验证码<验证码>')
         await this.reply('验证码已私聊发送，请查看私聊消息并在5分钟内完成验证')
       } catch (err) {
         await this.reply('私聊发送失败，验证码：' + code + '\n请在5分钟内回复 #ncm设置主人验证码' + code)
       }
     } else {
-      await this.reply('NCMApi 设置主人验证码：' + code + '\n请在5分钟内回复 #ncm设置主人验证码' + code)
+      await this.reply('双管乐·API 设置主人验证码：' + code + '\n请在5分钟内回复 #ncm设置主人验证码' + code)
     }
 
     return true

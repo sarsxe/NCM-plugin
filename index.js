@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { startNcmApiService } from './lib/service.js'
 
-const pluginDir = 'NCMApi-plugin'
+const pluginDir = 'NCM-plugin'
 const appDir = './plugins/' + pluginDir + '/apps'
 const pluginPath = './plugins/' + pluginDir
 
@@ -27,6 +27,25 @@ async function initService() {
 }
 
 initService()
+
+// 启动酷狗等新增平台服务（网易云由上方 initService 负责）
+import('./lib/handler.js').then(({ startAllServices }) => {
+  startAllServices().then(results => {
+    for (const r of results) {
+      if (r.name === 'ncm') continue
+      if (r.skipped) {
+        logger.info('[' + pluginDir + '] ' + r.name + ' 已禁用，跳过启动')
+      } else if (r.success) {
+        logger.info('[' + pluginDir + '] ' + r.name + ' 服务启动成功')
+      } else {
+        logger.warn('[' + pluginDir + '] ' + r.name + ' 服务启动失败：' + (r.error || '未知错误'))
+      }
+    }
+  }).catch(err => {
+    logger.error('[' + pluginDir + '] 多平台服务初始化异常')
+    logger.error(err)
+  })
+}).catch(() => {})
 
 const files = fs.existsSync(appDir)
   ? fs.readdirSync(appDir).filter(file => file.endsWith('.js')).sort()
