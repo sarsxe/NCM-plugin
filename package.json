@@ -1,6 +1,6 @@
 {
   "name": "ncmapi-plugin",
-  "version": "1.14.51.4",
+  "version": "1.145.14",
   "description": "NCM-plugin: DualMusic·API for Yunzai-Bot",
   "type": "module",
   "main": "index.js",

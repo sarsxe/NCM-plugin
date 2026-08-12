@@ -7,29 +7,62 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { padding: 22px; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; position: relative; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-.background-layer { position: absolute; inset: 0; background-image: linear-gradient(135deg, rgba(230,0,38,0.75) 0%, rgba(139,0,0,0.75) 100%), url("{{backdrop}}"); background-color: #e60026; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -2; }
+
+/* 竖版比例：接近手机屏幕 9:16，宽度450px时高度约800px */
+body:not(.landscape) { min-width: 494px; min-height: 800px; }
+/* 横版比例：接近电脑屏幕 16:9，宽度约900px时高度约506px */
+body.landscape { min-width: 944px; min-height: 506px; }
+.background-layer { position: absolute; inset: 0; background-image: url("{{backdrop}}"), linear-gradient(135deg, rgba(230,0,38,0.75) 0%, rgba(139,0,0,0.75) 100%); background-color: #e60026; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -2; }
 .background-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.05) 100%); z-index: -1; }
-body.landscape { width: max-content; min-width: 100%; }
-body.landscape .card { max-width: 616px; }
-/* 整体尺寸按 110% 超采样提升截图清晰度 */
-.card { background: #fff; border-radius: 18px; padding: 26px; max-width: 462px; margin: 0 auto; box-shadow: 0 9px 35px rgba(0,0,0,0.15); }
+body.landscape { width: max-content; }
+body.landscape .card { max-width: 880px; }
+
+/* 液态玻璃卡片：半透明白色 + 轻度模糊 + 高光边框 + 柔和阴影 */
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(4px) saturate(1.6);
+  -webkit-backdrop-filter: blur(4px) saturate(1.6);
+  border-radius: 20px;
+  padding: 26px;
+  max-width: 450px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px rgba(31, 38, 135, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+}
+
 .header { display: flex; align-items: center; margin-bottom: 22px; }
-.avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid #E60026; }
+.avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(230, 0, 38, 0.85); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
 .user-info { margin-left: 15px; flex: 1; min-width: 0; }
-.nickname { font-size: 20px; font-weight: 700; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.uid { font-size: 13px; color: #999; margin-top: 4px; }
-.platform-tag { display: inline-block; background: #E60026; color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 11px; margin-top: 5px; }
-.vip-section { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 13px; padding: 18px; margin-bottom: 18px; }
-.vip-section.inactive { background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%); }
+.nickname { font-size: 20px; font-weight: 700; color: #2d2b3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
+.uid { font-size: 13px; color: #5a5a6e; margin-top: 4px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
+.platform-tag { display: inline-block; background: linear-gradient(135deg, #E60026, #b80020); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 11px; margin-top: 5px; box-shadow: 0 2px 6px rgba(230,0,38,0.35); }
+
+/* VIP 区域：深色玻璃质感，与浅色卡片形成层次对比 */
+.vip-section {
+  background: linear-gradient(135deg, rgba(26,26,46,0.88) 0%, rgba(22,33,62,0.88) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 6px 20px rgba(20,20,40,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.vip-section.inactive { background: linear-gradient(135deg, rgba(120,120,130,0.55) 0%, rgba(90,90,100,0.55) 100%); }
 .vip-title { font-size: 22px; font-weight: 700; color: #fff; }
-.vip-state { display: inline-block; background: rgba(255,255,255,0.2); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 9px; margin-left: 9px; }
-.vip-subtitle { font-size: 14px; color: rgba(255,255,255,0.9); margin-top: 7px; }
-.vip-expire { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
-.stats { display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #f0f0f0; }
+.vip-state { display: inline-block; background: rgba(255,255,255,0.22); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 9px; margin-left: 9px; border: 1px solid rgba(255,255,255,0.25); }
+.vip-subtitle { font-size: 14px; color: rgba(255,255,255,0.92); margin-top: 7px; }
+.vip-expire { font-size: 13px; color: rgba(255,255,255,0.72); margin-top: 4px; }
+
+/* 统计区：玻璃分隔线 */
+.stats { display: flex; justify-content: space-around; padding: 15px 0 4px; border-top: 1px solid rgba(255,255,255,0.45); }
 .stat-item { text-align: center; }
-.stat-value { font-size: 20px; font-weight: 700; color: #333; }
-.stat-label { font-size: 13px; color: #999; margin-top: 2px; }
-.footer { text-align: center; font-size: 12px; color: #bbb; margin-top: 13px; }
+.stat-value { font-size: 20px; font-weight: 700; color: #2d2b3a; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
+.stat-label { font-size: 13px; color: #5a5a6e; margin-top: 2px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
+.footer { text-align: center; font-size: 12px; color: rgba(90,90,110,0.85); margin-top: 13px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
 </style>
 </head>
 <body class="{{bodyClass}}">

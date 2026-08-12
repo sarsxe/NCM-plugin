@@ -1,7 +1,21 @@
+import sharp from 'sharp'
 import { getService } from '../lib/handler.js'
 import { loadConfig, setServiceConfig } from '../lib/config.js'
 import { checkPermission } from '../lib/handler.js'
 import { replyCard } from '../lib/render.js'
+
+/** 将二维码图片放大2倍（提升扫码识别体验） */
+async function enlargeQrCode(base64Data) {
+  try {
+    const buf = Buffer.from(base64Data, 'base64')
+    const meta = await sharp(buf).metadata()
+    const w = (meta.width || 200) * 2
+    const enlarged = await sharp(buf).resize(w, w, { kernel: 'nearest' }).png().toBuffer()
+    return enlarged.toString('base64')
+  } catch {
+    return base64Data
+  }
+}
 
 export class NcmLogin extends plugin {
   constructor() {
@@ -45,16 +59,21 @@ export class NcmLogin extends plugin {
       const qrurl = createData?.body?.data?.qrurl || createData?.data?.qrurl
 
       if (qrimg) {
-        const base64Data = qrimg.replace(/^data:image\/\w+;base64,/, '')
-        await this.reply(segment.image('base64://' + base64Data), false, { recallMsg: 120 })
+        const base64Data = await enlargeQrCode(qrimg.replace(/^data:image\/\w+;base64,/, ''))
+        await this.reply([
+          segment.reply(this.e.message_id),
+          segment.image('base64://' + base64Data),
+          '\n请使用网易云音乐APP扫码登录\n二维码60秒内有效\n2分钟后撤回本条消息'
+        ], false, { recallMsg: 120 })
       } else if (qrurl) {
-        await this.reply('请用网易云APP扫描：' + qrurl + '\n2分钟后撤回本条消息', false, { recallMsg: 120 })
+        await this.reply([
+          segment.reply(this.e.message_id),
+          '请用网易云APP扫描登录：\n' + qrurl + '\n二维码60秒内有效\n2分钟后撤回本条消息'
+        ], false, { recallMsg: 120 })
       } else {
         await this.reply('二维码生成失败')
         return true
       }
-
-      await this.reply('请在60秒内使用网易云音乐APP扫码')
 
       // 3. 轮询检查
       const result = await this.pollNcmQrStatus(base, unikey, 60)
@@ -123,16 +142,21 @@ export class NcmLogin extends plugin {
       const qrurl = createData?.body?.data?.url || createData?.data?.url
 
       if (qrimg) {
-        const base64Data = qrimg.replace(/^data:image\/\w+;base64,/, '')
-        await this.reply(segment.image('base64://' + base64Data), false, { recallMsg: 120 })
+        const base64Data = await enlargeQrCode(qrimg.replace(/^data:image\/\w+;base64,/, ''))
+        await this.reply([
+          segment.reply(this.e.message_id),
+          segment.image('base64://' + base64Data),
+          '\n请使用酷狗音乐APP扫码登录\n二维码60秒内有效\n2分钟后撤回本条消息'
+        ], false, { recallMsg: 120 })
       } else if (qrurl) {
-        await this.reply('请用酷狗APP扫描：' + qrurl + '\n2分钟后撤回本条消息', false, { recallMsg: 120 })
+        await this.reply([
+          segment.reply(this.e.message_id),
+          '请用酷狗APP扫描登录：\n' + qrurl + '\n二维码60秒内有效\n2分钟后撤回本条消息'
+        ], false, { recallMsg: 120 })
       } else {
         await this.reply('酷狗二维码生成失败')
         return true
       }
-
-      await this.reply('请在60秒内使用酷狗音乐APP扫码')
 
       // 3. 轮询检查
       const result = await this.pollKugouQrStatus(base, key, 60)

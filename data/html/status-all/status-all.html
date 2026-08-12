@@ -37,17 +37,22 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* 竖版比例：接近手机屏幕 9:16，宽度616px时高度约1095px */
+body:not(.landscape) { min-width: 660px; min-height: 1095px; }
+/* 横版比例：接近电脑屏幕 16:9，宽度990px时高度约557px */
+body.landscape { min-width: 1034px; min-height: 557px; }
+
 .background-layer {
   position: absolute;
   inset: 0;
   background-image:
+    url("{{backdrop}}"),
     radial-gradient(ellipse 80% 60% at 15% 10%, rgba(86, 204, 242, 0.5) 0%, transparent 60%),
     radial-gradient(ellipse 70% 55% at 85% 20%, rgba(179, 157, 219, 0.45) 0%, transparent 60%),
     radial-gradient(ellipse 75% 60% at 80% 85%, rgba(245, 169, 200, 0.42) 0%, transparent 60%),
     radial-gradient(ellipse 80% 65% at 15% 90%, rgba(102, 217, 197, 0.45) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 50% 50%, rgba(150, 170, 230, 0.28) 0%, transparent 65%),
-    linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%),
-    url("{{backdrop}}");
+    linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%);
   background-color: #56ccf2;
   background-size: cover;
   background-position: center;
@@ -89,7 +94,6 @@ body {
 /* 横图自适应：加宽卡片，cover 裁剪最少 */
 body.landscape {
   width: max-content;
-  min-width: 100%;
 }
 
 body.landscape .card {

@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import sharp from 'sharp'
 import { replyCard } from '../lib/render.js'
 
 const REDIS_ORIG_IMG_KEY = 'ncm:origImg:'
@@ -33,6 +35,19 @@ export class NcmHelp extends plugin {
 
     const data = await redis.get(REDIS_ORIG_IMG_KEY + message_id)
     if (!data) return false
+
+    // 本地背景图：读取文件统一转为 PNG 发图
+    if (data.startsWith('localfile://')) {
+      const filePath = data.slice('localfile://'.length)
+      try {
+        const png = await sharp(fs.readFileSync(filePath)).png().toBuffer()
+        e.reply(segment.image('base64://' + png.toString('base64')))
+      } catch (err) {
+        logger.warn('[NCM-plugin] 原图读取失败:', err.message)
+        return false
+      }
+      return true
+    }
 
     e.reply(segment.image(data))
     return true

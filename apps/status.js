@@ -70,7 +70,9 @@ export class NcmStatus extends plugin {
     }
     const busiVip = Array.isArray(vipInfo.busi_vip) ? vipInfo.busi_vip : []
     const activeVip = busiVip.find(v => Number(v?.is_vip) === 1)
-    const userid = detail.userid || detail.uid || extractCookieVal(cookie, 'userid') || '未知'
+    // 酷狗用户详情接口不返回用户ID，优先从 cookie 提取，兜底用登录时保存到配置的 userid
+    const cfgUserid = getServiceConfig('kugou')?.userid || ''
+    const userid = detail.userid || detail.uid || extractCookieVal(cookie, 'userid') || cfgUserid || '未知'
     const nickname = detail.nickname || detail.k_nickname || '酷狗用户'
     const avatar = detail.pic || detail.k_pic || detail.fx_pic || ''
     const avatarUrl = normalizeAvatar(avatar, 'kugou')
@@ -107,7 +109,16 @@ export class NcmStatus extends plugin {
     const vipType = profile.vipType || 0
     let vipTitle = '普通用户', hasActiveVip = false
     let vipStateText = '未开通', vipSubtitle = '当前未开通会员'
-    let vipExpireText = '到期时间：未开通', level = profile.level || 0
+    let vipExpireText = '到期时间：未开通', level = 0, playCount = 0, loginCount = 0
+    // 等级/听歌数/登录天数需单独调用 /user/level 接口获取（profile 中无此字段）
+    try {
+      const levelRes = await fetch(ncmApiUrl(base, '/user/level', cookie), ncmFetchOptions(cookie))
+      const levelData = await levelRes.json()
+      const lv = levelData?.body?.data || levelData?.data || levelData?.body || {}
+      level = lv.level || 0
+      playCount = lv.nowPlayCount || 0
+      loginCount = lv.nowLoginCount || 0
+    } catch (e) {}
     try {
       const vipRes = await fetch(ncmApiUrl(base, '/vip/info', cookie, uid ? { uid } : {}), ncmFetchOptions(cookie))
       const vipData = await vipRes.json()
@@ -134,20 +145,13 @@ export class NcmStatus extends plugin {
         vipSubtitle = '网易云音乐会员'
       }
     }
-    let playlistCount = 0
-    try {
-      const subRes = await fetch(ncmApiUrl(base, '/user/subcount', cookie), ncmFetchOptions(cookie))
-      const subData = await subRes.json()
-      const sub = subData?.body || subData || {}
-      playlistCount = sub.createdPlaylistCount || 0
-    } catch (e) {}
     return {
       nickname, avatarUrl, uid: String(uid || '未知'), level: String(level),
       hasActiveVip, vipTitle, vipStateText, vipSubtitle, vipExpireText,
       stats: [
         { label: '等级', value: level },
-        { label: '歌单', value: playlistCount },
-        { label: '动态', value: profile.eventCount || 0 }
+        { label: '听歌', value: playCount },
+        { label: '登录天数', value: loginCount }
       ]
     }
   }
