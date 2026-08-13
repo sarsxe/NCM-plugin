@@ -35,8 +35,8 @@ body {
 }
 
 /* 根据背景图实际比例自适应：通过 CSS 变量 --bg-ratio 动态计算容器尺寸 */
-body:not(.landscape) { min-width: 836px; min-height: calc(836px / var(--bg-ratio, 0.5625)); }
-body.landscape { min-width: 1276px; min-height: calc(1276px / var(--bg-ratio, 1.7778)); }
+body:not(.landscape) { min-width: 836px; min-height: 1408px; }
+body.landscape { min-width: 1276px; min-height: 693px; }
 
 /* 背景层：{{backdrop}} 由插件注入 PNG base64 / 本地图片路径；
    留空时多层渐变自动兜底。absolute 随页面铺满，避免整页截图露白。 */
@@ -52,7 +52,7 @@ body.landscape { min-width: 1276px; min-height: calc(1276px / var(--bg-ratio, 1.
     radial-gradient(ellipse 60% 50% at 50% 50%, rgba(150, 170, 230, 0.28) 0%, transparent 65%),
     linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%);
   background-color: #56ccf2;
-  background-size: contain;
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   z-index: -2;
@@ -74,7 +74,7 @@ body.landscape { min-width: 1276px; min-height: calc(1276px / var(--bg-ratio, 1.
   background-color: var(--glass-bg);
   border-radius: 26px;
   padding: 31px 35px;
-  max-width: min(792px, calc(100vh * var(--bg-ratio, 0.5625) - 44px));
+  max-width: 792px;
   margin: 0 auto;
   box-shadow: 0 22px 55px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 0 44px rgba(120, 150, 230, 0.12);
   backdrop-filter: blur(var(--glass-blur));
@@ -90,7 +90,7 @@ body.landscape {
 }
 
 body.landscape .card {
-  max-width: min(1232px, calc(100vh * var(--bg-ratio, 1.7778) - 44px));
+  max-width: 1232px;
   grid-template-columns: repeat(3, 1fr);
 }
 
