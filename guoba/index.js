@@ -38,13 +38,10 @@ export function supportGuoba() {
         {
           field: 'kugou.cookie',
           label: '酷狗 Cookie',
-          bottomHelpMessage: '使用 #ncm酷狗登录 扫码自动获取，也可手动填入完整cookie',
+          bottomHelpMessage: '使用 #ncm酷狗登录 扫码自动获取完整认证信息（含token/userid/dfid），也可手动填入完整cookie',
           component: 'InputTextArea',
-          componentProps: { placeholder: '未登录，请使用 #ncm酷狗登录 或手动填入cookie', rows: 4 }
+          componentProps: { placeholder: '未登录，请使用 #ncm酷狗登录 或手动填入完整cookie', rows: 4 }
         },
-        { field: 'kugou.token', label: '酷狗 Token', bottomHelpMessage: '扫码登录后自动获取，一般不需要手动填写', component: 'Input', componentProps: { placeholder: '登录后自动填入' } },
-        { field: 'kugou.userid', label: '酷狗 UserID', bottomHelpMessage: '扫码登录后自动获取', component: 'Input', componentProps: { placeholder: '登录后自动填入' } },
-        { field: 'kugou.dfid', label: '酷狗 DFID', bottomHelpMessage: '扫码登录后自动获取的设备标识', component: 'Input', componentProps: { placeholder: '登录后自动填入' } },
         { label: '服务配置', component: 'SOFT_GROUP_BEGIN' },
         { component: 'Divider', label: '网易云 API 服务', componentProps: { orientation: 'left', plain: true } },
         { field: 'ncm.enabled', label: '启用网易云服务', bottomHelpMessage: '是否启用网易云音乐 API 服务', component: 'Switch' },
@@ -86,9 +83,6 @@ export function supportGuoba() {
           'ncm.host': config.ncm?.host || '127.0.0.1',
           'ncm.port': config.ncm?.port || 3030,
           'kugou.cookie': config.kugou?.cookie || '',
-          'kugou.token': config.kugou?.token || '',
-          'kugou.userid': config.kugou?.userid || '',
-          'kugou.dfid': config.kugou?.dfid || '',
           'kugou.enabled': config.kugou?.enabled !== false,
           'kugou.host': config.kugou?.host || '127.0.0.1',
           'kugou.port': config.kugou?.port || 3040,
@@ -111,9 +105,6 @@ export function supportGuoba() {
           if (data['ncm.port'] !== undefined) config.ncm.port = data['ncm.port']
 
           if (data['kugou.cookie'] !== undefined) config.kugou.cookie = data['kugou.cookie']
-          if (data['kugou.token'] !== undefined) config.kugou.token = data['kugou.token']
-          if (data['kugou.userid'] !== undefined) config.kugou.userid = data['kugou.userid']
-          if (data['kugou.dfid'] !== undefined) config.kugou.dfid = data['kugou.dfid']
           if (data['kugou.enabled'] !== undefined) config.kugou.enabled = data['kugou.enabled']
           if (data['kugou.host'] !== undefined) config.kugou.host = data['kugou.host']
           if (data['kugou.port'] !== undefined) config.kugou.port = data['kugou.port']

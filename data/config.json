@@ -11,10 +11,7 @@
     "enabled": true,
     "host": "127.0.0.1",
     "port": 3040,
-    "cookie": "",
-    "token": "",
-    "userid": "",
-    "dfid": ""
+    "cookie": ""
   },
   "style": {
     "backdrop": "",

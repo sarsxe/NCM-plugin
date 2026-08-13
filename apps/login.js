@@ -164,10 +164,7 @@ export class NcmLogin extends plugin {
         // 组装完整 cookie
         const fullCookie = await this.buildKugouFullCookie(base, result)
         setServiceConfig('kugou', {
-          token: fullCookie.token,
-          userid: fullCookie.userid,
-          cookie: fullCookie.cookie,
-          dfid: fullCookie.dfid
+          cookie: fullCookie.cookie
         })
         await this.sendLoginStatusCard(base, '酷狗', fullCookie.cookie)
 

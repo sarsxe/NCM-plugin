@@ -69,10 +69,13 @@ export class NcmStatus extends plugin {
       vipInfo = vipData?.body?.data || vipData?.data || {}
     }
     const busiVip = Array.isArray(vipInfo.busi_vip) ? vipInfo.busi_vip : []
-    const activeVip = busiVip.find(v => Number(v?.is_vip) === 1)
-    // 酷狗用户详情接口不返回用户ID，优先从 cookie 提取，兜底用登录时保存到配置的 userid
-    const cfgUserid = getServiceConfig('kugou')?.userid || ''
-    const userid = detail.userid || detail.uid || extractCookieVal(cookie, 'userid') || cfgUserid || '未知'
+    // 按优先级选择最高级会员：svip > tvip > 其他
+    const vipPriority = { svip: 3, tvip: 2, vip: 1 }
+    const activeVip = busiVip
+      .filter(v => Number(v?.is_vip) === 1)
+      .sort((a, b) => (vipPriority[String(b?.product_type || '').toLowerCase()] || 0) - (vipPriority[String(a?.product_type || '').toLowerCase()] || 0))[0]
+    // 酷狗用户详情接口不返回用户ID，从 cookie 中提取 userid
+    const userid = detail.userid || detail.uid || extractCookieVal(cookie, 'userid') || '未知'
     const nickname = detail.nickname || detail.k_nickname || '酷狗用户'
     const avatar = detail.pic || detail.k_pic || detail.fx_pic || ''
     const avatarUrl = normalizeAvatar(avatar, 'kugou')
@@ -85,7 +88,13 @@ export class NcmStatus extends plugin {
       const pt = String(activeVip.product_type || '').toLowerCase()
       vipTitle = pt === 'svip' ? 'SVIP' : pt === 'tvip' ? 'TVIP' : 'VIP'
       vipStateText = '有效中'
-      vipSubtitle = activeVip.busi_type || '音乐会员'
+      // 显示更有意义的副标题：SVIP 显示等级，其他显示中文描述
+      if (pt === 'svip' && vipInfo.svip_level) {
+        vipSubtitle = '豪华SVIP Lv.' + vipInfo.svip_level
+      } else {
+        const typeMap = { svip: '豪华SVIP', tvip: '听书VIP', vip: '音乐VIP' }
+        vipSubtitle = typeMap[pt] || '音乐会员'
+      }
       vipExpireText = '到期时间：' + (activeVip.vip_end_time || '未记录')
     }
     return {
@@ -123,14 +132,27 @@ export class NcmStatus extends plugin {
       const vipRes = await fetch(ncmApiUrl(base, '/vip/info', cookie, uid ? { uid } : {}), ncmFetchOptions(cookie))
       const vipData = await vipRes.json()
       const v = vipData?.body?.data || vipData?.data || {}
-      if (v.associator && v.associator.vipCode) {
+      // 按优先级检测最高会员：SVIP(redplus/300) > 黑胶VIP(associator/100) > 音乐包(musicPackage/220)
+      const now = Date.now()
+      const isValid = (item) => item && item.vipCode && Number(item.expireTime) > now
+      if (isValid(v.redplus)) {
         hasActiveVip = true
-        vipTitle = v.associator.vipCode === 100 ? '黑胶VIP' : 'VIP'
+        vipTitle = 'SVIP'
+        vipStateText = '有效中'
+        vipSubtitle = '网易云音乐SVIP'
+        vipExpireText = '到期时间：' + new Date(v.redplus.expireTime).toLocaleString('zh-CN')
+      } else if (isValid(v.associator)) {
+        hasActiveVip = true
+        vipTitle = '黑胶VIP'
         vipStateText = '有效中'
         vipSubtitle = '网易云音乐会员'
-        if (v.associator.expireTime) {
-          vipExpireText = '到期时间：' + new Date(v.associator.expireTime).toLocaleString('zh-CN')
-        }
+        vipExpireText = '到期时间：' + new Date(v.associator.expireTime).toLocaleString('zh-CN')
+      } else if (isValid(v.musicPackage)) {
+        hasActiveVip = true
+        vipTitle = '音乐包'
+        vipStateText = '有效中'
+        vipSubtitle = '网易云音乐包'
+        vipExpireText = '到期时间：' + new Date(v.musicPackage.expireTime).toLocaleString('zh-CN')
       } else if (vipType > 0) {
         hasActiveVip = true
         vipTitle = vipType === 11 ? '黑胶VIP' : 'VIP'
