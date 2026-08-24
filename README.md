@@ -62,26 +62,19 @@
 
 1. 推荐使用 git 进行安装，以方便后续升级
 
-```sh
+```bash
 cd /root/Yunzai
 ```
 
 使用 GitHub:
 
-```sh
+```bash
 git clone --depth=1 https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
 ```
+2. 安装依赖
 
-2. 进入项目
-
-```sh
-cd /root/Yunzai/plugins/NCM-plugin
-```
-
-3. 安装依赖
-
-```sh
-pnpm install
+```bash
+pnpm install --filter=NCM-plugin
 ```
 
 
@@ -96,11 +89,11 @@ pnpm install
 
 如需单独调试，可执行：
 
-```sh
+```bash
 cd /root/Yunzai/plugins/NCM-plugin
 ```
 
-```sh
+```bash
 node start.js
 ```
 
@@ -109,11 +102,11 @@ node start.js
 
 快速验证:
 
-```sh
+```bash
 curl http://127.0.0.1:3030/search?keywords=hello
 ```
 
-```sh
+```bash
 curl http://127.0.0.1:3040/search?keywords=hello
 ```
 
@@ -201,13 +194,13 @@ curl http://127.0.0.1:3040/search?keywords=hello
 
 useLocalNeteaseAPI:
 
-```sh
+```bash
 true
 ```
 
 neteaseCloudAPIServer:
 
-```sh
+```bash
 http://127.0.0.1:3030
 ```
 

@@ -13,14 +13,14 @@ export function supportGuoba() {
     pluginInfo: {
       name: 'NCM-plugin',
       title: '双管乐·API',
-      author: '',
-      authorLink: '',
-      link: '',
+      author: 'sarsxe',
+      authorLink: 'https://github.com/sarsxe',
+      link: 'https://github.com/sarsxe/NCM-plugin',
       isV3: true,
       isV2: false,
       description: '网易云/酷狗 API 双管乐插件，支持扫码登录、Cookie管理、会员信息查询',
       showInMenu: 'auto',
-      icon: 'mdi:music-circle',
+      icon: 'noto:four-leaf-clover',
       iconColor: '#7c4dff'
     },
     configInfo: {
