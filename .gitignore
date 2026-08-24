@@ -1,0 +1,16 @@
+node_modules/
+
+# backup files
+*.bak
+*.bak.*
+
+# logs
+*.log
+
+# temp files
+*.tmp
+*.temp
+
+# macOS
+.DS_Store
+

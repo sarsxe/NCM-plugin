@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCM-plugin 服务状态</title>
+<style>
+:root {
+  --glass-bg: transparent;
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: rgba(60, 70, 140, 0.22);
+  --glass-blur: 0px;
+  --primary: #45b8d8;
+  --primary-dark: #7e6bc4;
+  --text-main: #2d2b3a;
+  --text-secondary: #4a4a5c;
+  --text-muted: #6e6e82;
+  --section-bg: rgba(255, 255, 255, 0.32);
+  --note-bg: rgba(245, 243, 255, 0.38);
+  --ok: #2ea44f;
+  --warn: #e8a13a;
+  --err: #e05252;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+  min-height: 100vh;
+  padding: 22px;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 竖版比例：接近手机屏幕 9:16，宽度616px时高度约1095px */
+body:not(.landscape) { min-width: 660px; min-height: 1095px; }
+/* 横版比例：接近电脑屏幕 16:9，宽度990px时高度约557px */
+body.landscape { min-width: 1034px; min-height: 557px; }
+
+.background-layer {
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("{{backdrop}}"),
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(86, 204, 242, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 20%, rgba(179, 157, 219, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 60% at 80% 85%, rgba(245, 169, 200, 0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 65% at 15% 90%, rgba(102, 217, 197, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(150, 170, 230, 0.28) 0%, transparent 65%),
+    linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%);
+  background-color: #56ccf2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+}
+
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.08) 100%);
+  z-index: -1;
+}
+
+/* 整体尺寸按 110% 超采样提升截图清晰度 */
+.card {
+  position: relative;
+  background-color: var(--glass-bg);
+  border-radius: 26px;
+  padding: 31px 35px;
+  max-width: 616px;
+  margin: 0 auto;
+  box-shadow: 0 22px 55px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 0 44px rgba(120, 150, 230, 0.12);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(86, 204, 242, 0.22) 0%, rgba(179, 157, 219, 0.14) 50%, rgba(245, 169, 200, 0.22) 100%);
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* 横图自适应：加宽卡片，cover 裁剪最少 */
+body.landscape {
+  width: max-content;
+}
+
+body.landscape .card {
+  max-width: 990px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: center;
+  margin-bottom: 7px;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.svc {
+  margin-bottom: 15px;
+  padding: 15px 18px;
+  border-radius: 15px;
+  background: var(--section-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.svc:last-of-type { margin-bottom: 0; }
+
+.svc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.svc-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 11px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.badge.ok { background: var(--ok); }
+.badge.warn { background: var(--warn); }
+.badge.err { background: var(--err); }
+.badge.off { background: var(--text-muted); }
+
+.svc-row {
+  display: flex;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--text-secondary);
+}
+
+.svc-row .k {
+  min-width: 70px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.svc-row .v { color: var(--text-secondary); word-break: break-all; }
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 18px;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+}
+</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="background-layer"></div>
+<div class="background-overlay"></div>
+
+<div class="card">
+  <div class="title">NCM-plugin 服务状态</div>
+  <div class="subtitle">双管乐 · 网易云 & 酷狗 API 运行总览</div>
+
+  {{@ services}}
+
+  <div class="footer">NCM-plugin | #ncm状态</div>
+</div>
+
+</body>
+</html>

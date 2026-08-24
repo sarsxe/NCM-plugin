@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCM-plugin 帮助</title>
+<style>
+:root {
+  --glass-bg: transparent;
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: rgba(60, 70, 140, 0.22);
+  --glass-blur: 0px;
+  --primary: #45b8d8;
+  --primary-dark: #7e6bc4;
+  --text-main: #2d2b3a;
+  --text-secondary: #4a4a5c;
+  --text-muted: #6e6e82;
+  --section-bg: rgba(255, 255, 255, 0.32);
+  --note-bg: rgba(245, 243, 255, 0.38);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+  min-height: 100vh;
+  padding: 22px;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 根据背景图实际比例自适应：通过 CSS 变量 --bg-ratio 动态计算容器尺寸 */
+body:not(.landscape) { min-width: 836px; min-height: 1408px; }
+body.landscape { min-width: 1276px; min-height: 693px; }
+
+/* 背景层：{{backdrop}} 由插件注入 PNG base64 / 本地图片路径；
+   留空时多层渐变自动兜底。absolute 随页面铺满，避免整页截图露白。 */
+.background-layer {
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("{{backdrop}}"),
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(86, 204, 242, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 20%, rgba(179, 157, 219, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 60% at 80% 85%, rgba(245, 169, 200, 0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 65% at 15% 90%, rgba(102, 217, 197, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(150, 170, 230, 0.28) 0%, transparent 65%),
+    linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%);
+  background-color: #56ccf2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+}
+
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.08) 100%);
+  z-index: -1;
+}
+
+/* 卡片：两列网格，标题/副标题/分割线/备注/底栏通栏；整体尺寸按 110% 超采样提升截图清晰度 */
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 22px;
+  background-color: var(--glass-bg);
+  border-radius: 26px;
+  padding: 31px 35px;
+  max-width: 792px;
+  margin: 0 auto;
+  box-shadow: 0 22px 55px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 0 44px rgba(120, 150, 230, 0.12);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.title, .subtitle, .divider, .note, .footer { grid-column: 1 / -1; }
+
+/* 横图自适应：加宽并改为三列，cover 裁剪最少 */
+body.landscape {
+  width: max-content;
+}
+
+body.landscape .card {
+  max-width: 1232px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+body.landscape .cmd-name { min-width: 130px; }
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(86, 204, 242, 0.22) 0%, rgba(179, 157, 219, 0.14) 50%, rgba(245, 169, 200, 0.22) 100%);
+  z-index: -1;
+  opacity: 0.4;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: center;
+  margin-bottom: 7px;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.section { margin-bottom: 18px; }
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  display: inline-block;
+  padding: 3px 13px;
+  border-radius: 11px;
+  margin-bottom: 11px;
+  box-shadow: 0 2px 9px rgba(90, 110, 200, 0.3);
+}
+
+.cmd-list { padding-left: 4px; }
+
+.cmd-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-bottom: 7px;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 5px 9px;
+  border-radius: 9px;
+  background: var(--section-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.cmd-item:last-child { margin-bottom: 0; }
+
+.cmd-name {
+  color: #3a6ea5;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 145px;
+}
+
+.cmd-desc { color: var(--text-secondary); }
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(120, 140, 220, 0.28), transparent);
+  margin: 15px 0;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-top: 11px;
+  padding: 11px 15px;
+  background: var(--note-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 9px rgba(60, 70, 140, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 18px;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+}
+</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="background-layer"></div>
+<div class="background-overlay"></div>
+
+<div class="card">
+  <div class="title">NCM-plugin 帮助</div>
+  <div class="subtitle">双管乐 · 网易云 & 酷狗 · API</div>
+
+  <div class="section">
+    <div class="section-title">扫码登录（主人权限）</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm网易登录</span><span class="cmd-desc">网易云扫码登录</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm酷狗登录</span><span class="cmd-desc">酷狗扫码登录</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">账号信息</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm网易云信息</span><span class="cmd-desc">查看网易云账号/会员状态</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm酷狗信息</span><span class="cmd-desc">查看酷狗账号/会员状态</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">服务控制（主人权限）</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm启动/停止/重启</span><span class="cmd-desc">所有服务</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm网易云启动/停止/重启</span><span class="cmd-desc">网易云单服务</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm酷狗启动/停止/重启</span><span class="cmd-desc">酷狗单服务</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">状态查看</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm状态</span><span class="cmd-desc">查看所有服务状态</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm网易云状态</span><span class="cmd-desc">查看网易云API状态</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm酷狗状态</span><span class="cmd-desc">查看酷狗API状态</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">端口变更（主人权限）</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm网易云端口3030</span><span class="cmd-desc">修改网易云端口</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm酷狗端口3040</span><span class="cmd-desc">修改酷狗端口</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">依赖管理（主人权限）</div>
+    <div class="cmd-list">
+      <div class="cmd-item"><span class="cmd-name">#ncm安装api [版本]</span><span class="cmd-desc">安装指定/最新版API</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncm更新api</span><span class="cmd-desc">更新API到最新版</span></div>
+      <div class="cmd-item"><span class="cmd-name">#ncmapi版本</span><span class="cmd-desc">查看API版本信息</span></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="note">
+    默认端口：网易云 3030 / 酷狗 3040<br>
+    端口被占用时自动递增<br>
+    Cookie 可在锅巴面板中查看/手动编辑<br>
+    回复帮助图片发送 #原图 可获取当前背景原图
+  </div>
+  <div class="footer">NCM-plugin | #ncm帮助</div>
+</div>
+
+</body>
+</html>
