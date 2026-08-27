@@ -71,6 +71,27 @@ cd /root/Yunzai
 ```bash
 git clone --depth=1 https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
 ```
+
+<details><summary>🚀 国内网络克隆失败？试试加速通道（点击展开）</summary>
+
+如果直连 GitHub 出现 `GnuTLS recv error`、超时或卡住不动，可以换用以下任意一个加速通道：
+
+```bash
+git clone --depth=1 https://gh-proxy.com/https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
+```
+
+```bash
+git clone --depth=1 https://ghfast.top/https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
+```
+
+```bash
+git clone --depth=1 https://ghproxy.net/https://github.com/sarsxe/NCM-plugin.git ./plugins/NCM-plugin
+```
+
+> 加速通道仅代理 GitHub 流量，仓库内容与官方源完全一致，可放心使用。如果某个通道失效，换下一个即可。
+
+</details>
+
 2. 安装依赖
 
 ```bash

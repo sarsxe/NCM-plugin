@@ -324,10 +324,15 @@ export class update extends plugin {
   }
 
   async makeForwardMsg(title, msg, end) {
-    let { nickname } = this.e.bot ?? Bot
-    if (this.e.isGroup) {
-      let info = await (this.e.bot ?? Bot).getGroupMemberInfo(this.e.group_id, (this.e.bot ?? Bot).uin)
-      nickname = info.card || info.nickname
+    const bot = this.e.bot ?? Bot
+    let { nickname } = bot
+    if (this.e.isGroup && typeof bot.getGroupMemberInfo === 'function') {
+      try {
+        let info = await bot.getGroupMemberInfo(this.e.group_id, bot.uin)
+        nickname = info.card || info.nickname
+      } catch (err) {
+        logger.warn('[NCM-plugin] 获取群名片失败，使用默认昵称: ' + err.message)
+      }
     }
     let userInfo = {
       user_id: (this.e.bot ?? Bot).uin,
