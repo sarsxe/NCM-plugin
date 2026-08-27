@@ -171,9 +171,12 @@ export class update extends plugin {
       return false
     }
 
-    const npmRet = await runCmd('pnpm install')
+    // 先清除旧依赖目录再全新安装，确保符号链接适配当前环境（防止目录迁移/根依赖变动导致断链）
+    await this.reply('正在重建依赖环境（清除旧依赖后全新安装）...')
+    await runCmd('rm -rf node_modules')
+    const npmRet = await runCmd('pnpm install', { timeout: 300000 })
     if (npmRet.error) {
-      await this.reply('代码已更新，但 pnpm install 执行失败，请手动检查依赖')
+      await this.reply('代码已更新，但依赖重建失败，请手动执行 pnpm install 检查')
       await this.reply((npmRet.stderr || npmRet.stdout || String(npmRet.error)).slice(0, 1000))
       if (backupSuccess) {
         try {
