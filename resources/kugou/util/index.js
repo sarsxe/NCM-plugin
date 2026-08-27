@@ -13,7 +13,7 @@
  */
 
 // ========== 配置常量 ==========
-const { apiver, appid, wx_appid, wx_lite_appid, wx_secret, wx_lite_secret, srcappid, clientver, liteAppid, liteClientver } = require('./config.json');
+const { apiver, appid, wx_appid, wx_lite_appid, wx_secret, wx_lite_secret, srcappid, clientver, liteAppid, liteClientver, qq_appid, qq_lite_appid } = require('./config.json');
 
 // ========== 加密函数 ==========
 const {
@@ -31,12 +31,13 @@ const {
 
 // ========== 请求函数 ==========
 const { createRequest } = require('./request');
+const { resolveProxy } = require('./runtime');
 
 // ========== 签名函数 ==========
 const { signKey, signParams, signParamsKey, signCloudKey, signatureAndroidParams, signatureRegisterParams, signatureWebParams } = require('./helper');
 
 // ========== 工具函数 ==========
-const { randomString, decodeLyrics, parseCookieString, cookieToJson, randomNumber, calculateMid } = require('./util');
+const { randomString, decodeLyrics, parseCookieString, cookieToJson, randomNumber, calculateMid, isUUIDv4 } = require('./util');
 
 // ========== 平台判断 ==========
 // 根据环境变量 platform 判断当前是否为概念版（lite）
@@ -60,6 +61,8 @@ module.exports = {
   wx_lite_appid,                // 微信概念版小程序应用 ID
   wx_secret,                    // 微信小程序密钥
   wx_lite_secret,               // 微信概念版小程序密钥
+  qq_appid,                     // QQ 开放平台应用 ID（标准版）
+  qq_lite_appid,                // QQ 开放平台应用 ID（概念版）
   srcappid,                     // 来源应用 ID
   clientver: useClientver,      // 客户端版本号（根据平台自动选择）
   isLite,                       // 是否为概念版
@@ -76,6 +79,7 @@ module.exports = {
 
   // --- 请求函数 ---
   createRequest,                // 创建 HTTP 请求
+  resolveProxy,                 // 解析项目代理配置（KUGOU_API_PROXY）
 
   // --- 签名函数 ---
   signKey,                      // 请求密钥签名
@@ -94,5 +98,6 @@ module.exports = {
   publicLiteRasKey,             // 概念版 RSA 公钥
   publicRasKey,                 // 标准版 RSA 公钥
   randomNumber,                 // 随机数字字符串生成
-  calculateMid                  // 设备 MID 计算
+  calculateMid,                 // 设备 MID 计算
+  isUUIDv4                      // 判断是否为 UUID V4
 };

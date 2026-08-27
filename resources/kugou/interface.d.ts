@@ -220,10 +220,18 @@ export interface LoginParams extends CommonParams {
   password: string;
 }
 
-/** 开放接口登录参数（目前仅支持微信） */
+/** 微信开放接口登录参数 */
 export interface LoginOpenplatParams extends CommonParams {
   /** 微信扫码成功后生成的 code（必选） */
   code: string;
+}
+
+/** QQ 授权登录参数 */
+export interface LoginQqParams extends CommonParams {
+  /** QQ 授权返回的 openid（必选） */
+  openid: string;
+  /** QQ 授权返回的 access_token（必选） */
+  access_token: string;
 }
 
 /** 二维码 key 生成参数 */
@@ -250,6 +258,27 @@ export interface LoginWxCreateParams extends CommonParams {}
 export interface LoginWxCheckParams extends CommonParams {
   /** 由 `/login/wx/create` 生成的 uuid（必选） */
   uuid: string;
+  /** 建议传递，避免缓存导致延迟 */
+  timestamp?: number | string;
+}
+
+/** QQ 二维码生成参数 */
+export interface LoginQqQrCreateParams extends CommonParams {}
+
+/** QQ 二维码扫码状态检测参数 */
+export interface LoginQqQrCheckParams extends CommonParams {
+  /** 由 `/login/qq/qr/create` 返回的 QQ 扫码会话 Cookie（必选） */
+  cookie: string | CookieMap;
+  /** 由 `/login/qq/qr/create` 生成的 qrsig（必选） */
+  qrsig: string;
+  /** qrsig 的 hash33 值，由 `/login/qq/qr/create` 返回（必选） */
+  ptqrtoken: string | number;
+  /** QQ 登录签名，由 `/login/qq/qr/create` 返回（必选） */
+  pt_login_sig: string;
+  /** xlogin 完整参数（含 h5sig），由 `/login/qq/qr/create` 返回（必选） */
+  pt_openlogin_data: string;
+  /** xlogin 接口完整链接，用作轮询 Referer（必选） */
+  xlogin_url: string;
   /** 建议传递，避免缓存导致延迟 */
   timestamp?: number | string;
 }
@@ -364,6 +393,86 @@ export interface UserCloudUrlParams extends CommonParams {
   name?: string;
   /** 专辑音频 id */
   album_audio_id?: string;
+}
+
+/** 删除用户云盘音乐参数 */
+export interface UserCloudDelParams extends CommonParams {
+  /** 云盘文件 ID，多个可用逗号分隔 */
+  fileid?: number | string;
+  /** 云盘文件 ID 列表 */
+  fileids?: Array<number | string> | string;
+  /** 云盘文件 ID 别名 */
+  kv_id?: number | string;
+  /** 专辑音频 ID，列表接口返回 album_audio_id */
+  album_audio_id?: number | string;
+  /** 专辑音频 ID 列表 */
+  album_audio_ids?: Array<number | string> | string;
+  /** album_audio_id 别名 */
+  mix_id?: number | string;
+  /** album_audio_id 别名 */
+  mixid?: number | string;
+  /** 覆盖客户端版本号，默认使用当前平台配置 */
+  clientver?: number | string;
+  /** 覆盖 appid，默认使用当前平台配置 */
+  appid?: number | string;
+}
+
+/** 云盘上传前曲库匹配参数 */
+export interface UserCloudMatchParams extends CommonParams {
+  /** 文件 hash（即文件 MD5），多个可用逗号分隔；不传时可通过请求体二进制自动计算 */
+  hash?: string;
+  /** 文件 hash 别名 */
+  filename?: string;
+  /** 专辑音频 ID，已有时可辅助匹配 */
+  album_audio_id?: number | string;
+  /** 专辑音频 ID 列表 */
+  album_audio_ids?: Array<number | string> | string;
+  /** album_audio_id 别名 */
+  mix_id?: number | string;
+  /** album_audio_id 别名 */
+  mixid?: number | string;
+  /** 覆盖客户端版本号，默认使用当前平台配置 */
+  clientver?: number | string;
+  /** 覆盖 appid，默认使用当前平台配置 */
+  appid?: number | string;
+}
+
+/** 上传音乐到用户云盘参数 */
+export interface UserCloudUploadParams extends CommonParams {
+  /** 文件 hash（即文件 MD5），默认根据请求体二进制自动计算 */
+  filename?: string;
+  /** 文件扩展名，默认 mp3 */
+  extendname?: string;
+  /** 云盘音乐显示名称 */
+  name?: string;
+  /** 歌曲名，不传 name 时用于拼接显示名称 */
+  track_name?: string;
+  /** 歌曲名别名 */
+  songname?: string;
+  /** 歌手名 */
+  author_name?: string;
+  /** 曲库标准 hash，不传时默认自动匹配 */
+  hash_std?: string;
+  /** 音频 id，不传时默认自动匹配 */
+  audio_id?: number | string;
+  /** 专辑音频 id，不传时默认自动匹配 */
+  album_audio_id?: number | string;
+  /** album_audio_id 别名 */
+  mix_id?: number | string;
+  /** album_audio_id 别名 */
+  mixid?: number | string;
+  /** 是否自动匹配曲库，默认 1；传 0/false/no 关闭 */
+  auto_match?: number | string | boolean;
+  /** 码率类型，默认 4 */
+  bitrate?: number | string;
+  /** 时长，毫秒 */
+  timelen?: number | string;
+  /** 云盘列表版本，默认 0 */
+  list_ver?: number | string;
+  /** 覆盖客户端版本号，默认使用当前平台配置 */
+  clientver?: number | string;
+  /** 覆盖 appid，默认使用当前平台配置 */
+  appid?: number | string;
 }
 
 /** 获取用户收藏的视频参数 */
@@ -1558,10 +1667,16 @@ export function login_cellphone(params: LoginCellphoneParams): Promise<ApiRespon
 export function login(params: LoginParams): Promise<ApiResponse>;
 
 /**
- * 开放接口登录（目前仅支持微信）
+ * 微信开放接口登录
  * @route /login/openplat
  */
 export function login_openplat(params: LoginOpenplatParams): Promise<ApiResponse>;
+
+/**
+ * QQ 授权登录
+ * @route /login/qq
+ */
+export function login_qq(params: LoginQqParams): Promise<ApiResponse>;
 
 /**
  * 二维码登录 - 生成 key
@@ -1601,6 +1716,18 @@ export function login_wx_create(params?: LoginWxCreateParams): Promise<ApiRespon
  * @route /login/wx/check
  */
 export function login_wx_check(params: LoginWxCheckParams): Promise<ApiResponse>;
+
+/**
+ * QQ 登录 - 生成二维码
+ * @route /login/qq/qr/create
+ */
+export function login_qq_qr_create(params?: LoginQqQrCreateParams): Promise<ApiResponse>;
+
+/**
+ * QQ 登录 - 检测扫码状态，扫码成功后返回酷狗登录态
+ * @route /login/qq/qr/check
+ */
+export function login_qq_qr_check(params: LoginQqQrCheckParams): Promise<ApiResponse>;
 
 /**
  * 刷新登录状态，延长 token 过期时间
@@ -1699,6 +1826,24 @@ export function user_cloud(params?: UserCloudParams): Promise<ApiResponse>;
  * @route /user/cloud/url
  */
 export function user_cloud_url(params: UserCloudUrlParams): Promise<ApiResponse>;
+
+/**
+ * 删除用户云盘音乐（需登录）
+ * @route /user/cloud/del
+ */
+export function user_cloud_del(params: UserCloudDelParams): Promise<ApiResponse>;
+
+/**
+ * 云盘上传前曲库匹配（需登录）
+ * @route /user/cloud/match
+ */
+export function user_cloud_match(params: UserCloudMatchParams): Promise<ApiResponse>;
+
+/**
+ * 上传音乐到云盘（需登录）
+ * @route /user/cloud/upload
+ */
+export function user_cloud_upload(params: UserCloudUploadParams): Promise<ApiResponse>;
 
 /**
  * 获取用户收藏的视频（需登录）

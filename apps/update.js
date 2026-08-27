@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { exec, execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { updateKugou, checkKugouDeps, getKugouVersion } from '../lib/kugou-updater.js'
 
 const pluginDir = 'NCM-plugin'
 const pluginPath = fileURLToPath(new URL('../', import.meta.url))
@@ -11,18 +12,14 @@ function runCmd(command, options = {}) {
   return new Promise(resolve => {
     exec(command, {
       cwd: options.cwd || pluginPath,
-      windowsHide: true
+      windowsHide: true,
+      timeout: options.timeout || 120000
     }, (error, stdout, stderr) => {
       resolve({ error, stdout, stderr })
     })
   })
 }
 
-/**
- * 异步检查文件/目录是否存在
- * @param {string} filePath
- * @returns {Promise<boolean>}
- */
 async function checkFileExists(filePath) {
   try {
     await fs.promises.access(filePath)
@@ -32,10 +29,6 @@ async function checkFileExists(filePath) {
   }
 }
 
-/**
- * 递归创建目录（如果不存在）
- * @param {string} dir
- */
 async function mkdirIfNotExists(dir) {
   try {
     await fs.promises.access(dir)
@@ -44,12 +37,6 @@ async function mkdirIfNotExists(dir) {
   }
 }
 
-/**
- * 拷贝文件/目录
- * @param {string} srcDir 源目录
- * @param {string} destDir 目标目录
- * @param {string[]} specificFiles 指定拷贝的文件列表，为空则拷贝全部
- */
 async function copyFiles(srcDir, destDir, specificFiles = []) {
   try {
     await mkdirIfNotExists(destDir)
@@ -71,10 +58,6 @@ async function copyFiles(srcDir, destDir, specificFiles = []) {
   }
 }
 
-/**
- * 递归删除文件夹
- * @param {string} folderPath
- */
 async function deleteFolderRecursive(folderPath) {
   try {
     const exists = await checkFileExists(folderPath)
@@ -105,7 +88,8 @@ export class update extends plugin {
       priority: 4000,
       rule: [
         { reg: '^#*(NCM|ncm)(插件)?版本$', fnc: 'version' },
-        { reg: '^#*(NCM|ncm)(插件)?(强制更新|更新)$', fnc: 'ncmUpdate' }
+        { reg: '^#*(NCM|ncm)(插件)?(强制更新|更新)$', fnc: 'ncmUpdate' },
+        { reg: '^#*(NCM|ncm)(插件)?更新酷狗(强制)?$', fnc: 'kugouUpdateOnly' }
       ]
     })
     this.oldCommitId = ''
@@ -120,7 +104,8 @@ export class update extends plugin {
       'Commit：' + this.getCommitId(),
       '时间：' + this.getTime(),
       '目录：./plugins/' + pluginDir,
-      '启动方式：随 Yunzai 自动启动'
+      '启动方式：随 Yunzai 自动启动',
+      '内置酷狗API：' + (getKugouVersion() || 'unknown')
     ].join('\n')
     await this.reply(msg)
     return true
@@ -136,7 +121,6 @@ export class update extends plugin {
     this.oldCommitId = this.getCommitId()
     await this.reply('正在执行 NCM-plugin 更新，请稍等')
 
-    // 备份 data 目录
     const dataDir = path.join(pluginPath, 'data')
     const hasData = await checkFileExists(dataDir)
     let backupSuccess = false
@@ -157,7 +141,6 @@ export class update extends plugin {
       const resetRet = await runCmd('git checkout .')
       if (resetRet.error) {
         await this.gitErr(resetRet.error, resetRet.stdout, resetRet.stderr)
-        // 恢复 data 目录
         if (backupSuccess) {
           try {
             await deleteFolderRecursive(dataDir)
@@ -175,7 +158,6 @@ export class update extends plugin {
     const pullRet = await runCmd('git pull --no-rebase')
     if (pullRet.error) {
       await this.gitErr(pullRet.error, pullRet.stdout, pullRet.stderr)
-      // 恢复 data 目录
       if (backupSuccess) {
         try {
           await deleteFolderRecursive(dataDir)
@@ -193,7 +175,6 @@ export class update extends plugin {
     if (npmRet.error) {
       await this.reply('代码已更新，但 pnpm install 执行失败，请手动检查依赖')
       await this.reply((npmRet.stderr || npmRet.stdout || String(npmRet.error)).slice(0, 1000))
-      // 恢复 data 目录
       if (backupSuccess) {
         try {
           await deleteFolderRecursive(dataDir)
@@ -207,11 +188,16 @@ export class update extends plugin {
       return false
     }
 
-    const time = this.getTime()
     const pullOutput = String(pullRet.stdout || '') + '\n' + String(pullRet.stderr || '')
-    if (/Already up[ -]to[ -]date|已经是最新/i.test(pullOutput)) {
-      await this.reply('NCM-plugin 已经是最新版本，最后更新时间：' + time)
-      // 清理临时备份
+    const pluginUpdated = !/Already up[ -]to[ -]date|已经是最新/i.test(pullOutput)
+
+    const kugouResult = await this.processKugouUpdate(isForce)
+
+    await this.checkAndFixDeps()
+
+    const time = this.getTime()
+    if (!pluginUpdated && !kugouResult.updated) {
+      await this.reply('NCM-plugin 与内置酷狗API均已是最新版本，最后检查时间：' + time)
       if (backupSuccess) {
         try {
           await deleteFolderRecursive(tempBackupDir)
@@ -222,20 +208,22 @@ export class update extends plugin {
       return true
     }
 
-    await this.reply([
-      'NCM-plugin 更新成功',
-      '最后更新时间：' + time,
-      '依赖已安装，请重启 Yunzai 使更新与内置 NCM API 服务生效'
-    ].join('\n'))
+    const summary = ['NCM-plugin 更新完成', '最后更新时间：' + time]
+    if (pluginUpdated) summary.push('插件本体：已更新')
+    if (kugouResult.updated) {
+      summary.push('内置酷狗API：' + (kugouResult.localVersion || 'unknown') + ' → ' + (kugouResult.upstreamVersion || 'unknown'))
+    } else if (kugouResult.success) {
+      summary.push('内置酷狗API：已是最新 ' + (kugouResult.upstreamVersion || ''))
+    }
+    summary.push(kugouResult.success ? '依赖已安装并自检完成，重启 Yunzai 后生效' : '注意：酷狗API更新失败，详情见上方日志')
+    await this.reply(summary.join('\n'))
 
-    // 获取更新日志并以转发消息形式发送
     const log = this.getLog()
     if (log) {
       const forwardMsg = await this.makeForwardMsg('NCM-plugin 更新日志', log, '')
       if (forwardMsg) await this.reply(forwardMsg)
     }
 
-    // 清理临时备份
     if (backupSuccess) {
       try {
         await deleteFolderRecursive(tempBackupDir)
@@ -246,6 +234,48 @@ export class update extends plugin {
     }
 
     return true
+  }
+
+  async kugouUpdateOnly() {
+    if (!this.e.isMaster) {
+      await this.reply('您无权操作')
+      return true
+    }
+    const force = this.e.msg.includes('强制')
+    const result = await this.processKugouUpdate(force)
+    if (!result.success) {
+      await this.reply('酷狗API更新失败：' + (result.error || '未知错误') + (result.detail ? '\n' + String(result.detail).slice(0, 800) : ''))
+      return false
+    }
+    await this.reply(result.updated
+      ? result.message + '\n依赖已安装，重启 Yunzai 或重载服务后生效'
+      : result.message)
+    return true
+  }
+
+  async processKugouUpdate(force) {
+    await this.reply('正在检查并更新内置酷狗API...')
+    try {
+      const result = await updateKugou({ force })
+      logger.mark('[NCM-plugin][酷狗API] ' + (result.message || result.error || ''))
+      return result
+    } catch (err) {
+      logger.error('[NCM-plugin][酷狗API] 更新异常: ' + err.message)
+      return { success: false, error: err.message, updated: false }
+    }
+  }
+
+  async checkAndFixDeps() {
+    try {
+      const result = await checkKugouDeps()
+      if (result.missing && result.missing.length > 0) {
+        await this.reply('酷狗API依赖自检：已自动补全 ' + result.missing.length + ' 个缺失依赖\n' + result.missing.join(', '))
+      }
+      return result
+    } catch (err) {
+      logger.error('[NCM-plugin][依赖自检] 失败: ' + err.message)
+      return { success: false, error: err.message }
+    }
   }
 
   getCommitId() {
@@ -290,13 +320,6 @@ export class update extends plugin {
     }
   }
 
-  /**
-   * 制作转发消息
-   * @param {string} title 标题 - 首条消息
-   * @param {string} msg 日志信息
-   * @param {string} end 最后一条信息
-   * @returns
-   */
   async makeForwardMsg(title, msg, end) {
     let { nickname } = this.e.bot ?? Bot
     if (this.e.isGroup) {
@@ -323,7 +346,6 @@ export class update extends plugin {
         message: end
       })
     }
-    /** 制作转发内容 */
     if (this.e.group?.makeForwardMsg) {
       forwardMsg = await this.e.group.makeForwardMsg(forwardMsg)
     } else if (this.e?.friend?.makeForwardMsg) {
@@ -332,7 +354,6 @@ export class update extends plugin {
       return msg
     }
     let dec = 'NCM-plugin 更新日志'
-    /** 处理描述 */
     if (typeof (forwardMsg.data) === 'object') {
       let detail = forwardMsg.data?.meta?.detail
       if (detail) {

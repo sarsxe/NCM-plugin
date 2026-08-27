@@ -1,5 +1,8 @@
 node_modules/
 
+# runtime data (cookies, login state - never commit)
+data/
+
 # backup files
 *.bak
 *.bak.*
@@ -10,6 +13,8 @@ node_modules/
 # temp files
 *.tmp
 *.temp
+tmp/
+temp/
 
 # macOS
 .DS_Store
