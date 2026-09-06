@@ -1,97 +1,262 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang=zh-CN>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset=utf-8>
+<meta name=viewport content=width=device-width, initial-scale=1.0>
 <title>酷狗账号信息</title>
 <style>
+:root {
+  --glass-bg: transparent;
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-shadow: rgba(60, 70, 140, 0.22);
+  --glass-blur: 0px;
+  --text-main: #2d2b3a;
+  --text-secondary: #4a4a5c;
+  --text-muted: #6e6e82;
+  --section-bg: rgba(255, 255, 255, 0.32);
+  --ok: #2ea44f;
+  --warn: #e8a13a;
+  --err: #e05252;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { padding: 22px; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; position: relative; min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
-/* 竖版比例：接近手机屏幕 9:16，宽度450px时高度约800px */
-body:not(.landscape) { min-width: 494px; min-height: 800px; }
-/* 横版比例：接近电脑屏幕 16:9，宽度约900px时高度约506px */
-body.landscape { min-width: 944px; min-height: 506px; }
-.background-layer { position: absolute; inset: 0; background-image: url("{{backdrop}}"), linear-gradient(135deg, rgba(102,126,234,0.75) 0%, rgba(118,75,162,0.75) 100%); background-color: #667eea; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -2; }
-.background-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.05) 100%); z-index: -1; }
-body.landscape { width: max-content; }
-body.landscape .card { max-width: 880px; }
+html, body { min-height: 100%; }
 
-/* 液态玻璃卡片：半透明白色 + 轻度模糊 + 高光边框 + 柔和阴影 */
+body {
+  min-height: 100vh;
+  padding: 22px;
+  font-family: Microsoft YaHei, PingFang SC, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 竖版比例：接近手机屏幕 9:16，宽度660px时高度约1173px */
+body:not(.landscape) { min-width: 660px; min-height: 1173px; }
+/* 横版比例：接近电脑屏幕 16:9，宽度1034px时高度约582px */
+body.landscape { min-width: 1034px; min-height: 582px; }
+
+.background-layer {
+  position: absolute;
+  inset: 0;
+  background-image:
+    url({{backdrop}}),
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(86, 204, 242, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 20%, rgba(179, 157, 219, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 60% at 80% 85%, rgba(245, 169, 200, 0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 65% at 15% 90%, rgba(102, 217, 197, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(150, 170, 230, 0.28) 0%, transparent 65%),
+    linear-gradient(135deg, rgba(86, 204, 242, 0.5) 0%, rgba(179, 157, 219, 0.4) 38%, rgba(102, 217, 197, 0.45) 70%, rgba(245, 169, 200, 0.5) 100%);
+  background-color: #56ccf2;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+}
+
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.08) 100%);
+  z-index: -1;
+}
+
+/* 整体尺寸按 110% 超采样提升截图清晰度 */
 .card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(4px) saturate(1.6);
-  -webkit-backdrop-filter: blur(4px) saturate(1.6);
-  border-radius: 20px;
-  padding: 26px;
-  max-width: 450px;
+  position: relative;
+  background-color: var(--glass-bg);
+  border-radius: 26px;
+  padding: 31px 35px;
+  max-width: 616px;
   margin: 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow:
-    0 8px 32px rgba(31, 38, 135, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 22px 55px var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 0 44px rgba(120, 150, 230, 0.12);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
 }
 
-.header { display: flex; align-items: center; margin-bottom: 22px; }
-.avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(36, 187, 249, 0.85); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
-.user-info { margin-left: 15px; flex: 1; min-width: 0; }
-.nickname { font-size: 20px; font-weight: 700; color: #2d2b3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
-.uid { font-size: 13px; color: #5a5a6e; margin-top: 4px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
-.platform-tag { display: inline-block; background: linear-gradient(135deg, #24BBF9, #1a9fd9); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 11px; margin-top: 5px; box-shadow: 0 2px 6px rgba(36,187,249,0.35); }
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(86, 204, 242, 0.22) 0%, rgba(179, 157, 219, 0.14) 50%, rgba(245, 169, 200, 0.22) 100%);
+  z-index: -1;
+  opacity: 0.4;
+}
 
-/* VIP 区域：深色玻璃质感，与浅色卡片形成层次对比 */
+/* 横图自适应：加宽卡片，cover 裁剪最少 */
+body.landscape {
+  width: max-content;
+}
+
+body.landscape .card {
+  max-width: 990px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(36, 187, 249, 0.6);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+
+.user-info {
+  margin-left: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nickname {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uid {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.platform-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, #24BBF9, #1a9fd9);
+  color: #fff;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
 .vip-section {
-  background: linear-gradient(135deg, rgba(246,211,101,0.85) 0%, rgba(253,160,133,0.85) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 14px;
-  padding: 18px;
+  background: var(--section-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 15px;
+  padding: 18px 20px;
   margin-bottom: 18px;
-  border: 1px solid rgba(255,255,255,0.35);
-  box-shadow: 0 6px 20px rgba(200,150,80,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.vip-section.inactive { background: linear-gradient(135deg, rgba(120,120,130,0.55) 0%, rgba(90,90,100,0.55) 100%); }
-.vip-title { font-size: 22px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(180,120,40,0.4); }
-.vip-state { display: inline-block; background: rgba(255,255,255,0.3); color: #fff; font-size: 12px; padding: 2px 9px; border-radius: 9px; margin-left: 9px; border: 1px solid rgba(255,255,255,0.35); }
-.vip-subtitle { font-size: 14px; color: rgba(255,255,255,0.95); margin-top: 7px; text-shadow: 0 1px 2px rgba(180,120,40,0.3); }
-.vip-expire { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 4px; text-shadow: 0 1px 2px rgba(180,120,40,0.25); }
 
-/* 统计区：玻璃分隔线 */
-.stats { display: flex; justify-content: space-around; padding: 15px 0 4px; border-top: 1px solid rgba(255,255,255,0.45); }
-.stat-item { text-align: center; }
-.stat-value { font-size: 20px; font-weight: 700; color: #2d2b3a; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
-.stat-label { font-size: 13px; color: #5a5a6e; margin-top: 2px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
-.footer { text-align: center; font-size: 12px; color: rgba(90,90,110,0.85); margin-top: 13px; text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
+.vip-section.inactive {
+  background: rgba(150, 150, 160, 0.25);
+}
+
+.vip-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: inline-block;
+}
+
+.vip-state {
+  display: inline-block;
+  background: var(--ok);
+  color: #fff;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.vip-section.inactive .vip-state {
+  background: var(--text-muted);
+}
+
+.vip-subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.vip-expire {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 18px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
 </style>
 </head>
-<body class="{{bodyClass}}">
-<div class="background-layer"></div>
-<div class="background-overlay"></div>
-<div class="card">
-  <div class="header">
-    <img class="avatar" src="{{avatarUrl}}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22%3E%3Crect width=%22240%22 height=%22240%22 rx=%22120%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 font-size=%2276%22 fill=%22%2324BBF9%22%3EKG%3C/text%3E%3C/svg%3E'">
-    <div class="user-info">
-      <div class="nickname">{{nickname}}</div>
-      <div class="uid">UID: {{uid}}</div>
-      <span class="platform-tag">酷狗音乐</span>
+<body class={{bodyClass}}>
+<div class=background-layer></div>
+<div class=background-overlay></div>
+
+<div class=card>
+  <div class=header>
+    <img class=avatar src={{avatarUrl}} onerror=this.src=data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22240%22%3E%3Crect width=%22240%22 height=%22240%22 rx=%22120%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2255%25%22 text-anchor=%22middle%22 font-size=%2276%22 fill=%22%2324BBF9%22%3EKG%3C/text%3E%3C/svg%3E>
+    <div class=user-info>
+      <div class=nickname>{{nickname}}</div>
+      <div class=uid>UID: {{uid}}</div>
+      <span class=platform-tag>酷狗音乐</span>
     </div>
   </div>
-  <div class="vip-section{{if !hasActiveVip}} inactive{{/if}}">
-    <span class="vip-title">{{vipTitle}}</span>
-    <span class="vip-state">{{vipStateText}}</span>
-    <div class="vip-subtitle">{{vipSubtitle}}</div>
-    <div class="vip-expire">{{vipExpireText}}</div>
+
+  <div class=vip-section{{if !hasActiveVip}} inactive{{/if}}>
+    <span class=vip-title>{{vipTitle}}</span>
+    <span class=vip-state>{{vipStateText}}</span>
+    <div class=vip-subtitle>{{vipSubtitle}}</div>
+    <div class=vip-expire>{{vipExpireText}}</div>
   </div>
-  <div class="stats">
+
+  <div class=stats>
     {{each stats item}}
-    <div class="stat-item">
-      <div class="stat-value">{{item.value}}</div>
-      <div class="stat-label">{{item.label}}</div>
+    <div class=stat-item>
+      <div class=stat-value>{{item.value}}</div>
+      <div class=stat-label>{{item.label}}</div>
     </div>
     {{/each}}
   </div>
-  <div class="footer">NCM-plugin | 酷狗账号信息</div>
+
+  <div class=footer>NCM-plugin | 酷狗账号信息</div>
 </div>
 
 </body>

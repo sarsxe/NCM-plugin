@@ -17,6 +17,13 @@ async function enlargeQrCode(base64Data) {
   }
 }
 
+/** 带超时的 fetch，防止上游接口 hang 住拖死整个登录流程 */
+function fetchTimeout(url, options = {}, timeoutMs = 10000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer))
+}
+
 export class NcmLogin extends plugin {
   constructor() {
     super({
@@ -42,9 +49,8 @@ export class NcmLogin extends plugin {
     const base = 'http://' + (config.ncm?.host || '127.0.0.1') + ':' + ncmPort
 
     try {
-      // 1. 获取 key
       await this.reply('正在生成网易云登录二维码...')
-      const keyRes = await fetch(base + '/login/qr/key?timestamp=' + Date.now())
+      const keyRes = await fetchTimeout(base + '/login/qr/key?timestamp=' + Date.now())
       const keyData = await keyRes.json()
       const unikey = keyData?.body?.data?.unikey || keyData?.data?.unikey
       if (!unikey) {
@@ -52,8 +58,7 @@ export class NcmLogin extends plugin {
         return true
       }
 
-      // 2. 生成二维码
-      const createRes = await fetch(base + '/login/qr/create?key=' + unikey + '&qrimg=true&timestamp=' + Date.now())
+      const createRes = await fetchTimeout(base + '/login/qr/create?key=' + unikey + '&qrimg=true&timestamp=' + Date.now())
       const createData = await createRes.json()
       const qrimg = createData?.body?.data?.qrimg || createData?.data?.qrimg
       const qrurl = createData?.body?.data?.qrurl || createData?.data?.qrurl
@@ -75,10 +80,8 @@ export class NcmLogin extends plugin {
         return true
       }
 
-      // 3. 轮询检查
       const result = await this.pollNcmQrStatus(base, unikey, 60)
       if (result.success) {
-        // 保存 cookie
         setServiceConfig('ncm', { cookie: result.cookie })
         await this.sendLoginStatusCard(base, '网易云', result.cookie)
       } else {
@@ -95,17 +98,15 @@ export class NcmLogin extends plugin {
     while (Date.now() - start < timeout * 1000) {
       await this.sleep(3000)
       try {
-        const res = await fetch(base + '/login/qr/check?key=' + unikey + '&timestamp=' + Date.now())
+        const res = await fetchTimeout(base + '/login/qr/check?key=' + unikey + '&timestamp=' + Date.now(), {}, 8000)
         const data = await res.json()
         const code = data?.body?.code || data?.code
         if (code === 803) {
-          // 登录成功
           const cookie = data?.body?.cookie || data?.cookie || ''
           return { success: true, cookie }
         } else if (code === 800) {
           return { success: false, message: '二维码已过期' }
         }
-        // 801=等待扫码 802=待确认 继续轮询
       } catch (e) {
         // 网络错误继续重试
       }
@@ -126,8 +127,7 @@ export class NcmLogin extends plugin {
     try {
       await this.reply('正在生成酷狗登录二维码...')
 
-      // 1. 获取 key
-      const keyRes = await fetch(base + '/login/qr/key?timestamp=' + Date.now())
+      const keyRes = await fetchTimeout(base + '/login/qr/key?timestamp=' + Date.now())
       const keyData = await keyRes.json()
       const key = keyData?.body?.data?.qrcode || keyData?.data?.qrcode
       if (!key) {
@@ -135,8 +135,7 @@ export class NcmLogin extends plugin {
         return true
       }
 
-      // 2. 生成二维码
-      const createRes = await fetch(base + '/login/qr/create?key=' + key + '&qrimg=true&timestamp=' + Date.now())
+      const createRes = await fetchTimeout(base + '/login/qr/create?key=' + key + '&qrimg=true&timestamp=' + Date.now())
       const createData = await createRes.json()
       const qrimg = createData?.body?.data?.base64 || createData?.data?.base64
       const qrurl = createData?.body?.data?.url || createData?.data?.url
@@ -158,17 +157,15 @@ export class NcmLogin extends plugin {
         return true
       }
 
-      // 3. 轮询检查
       const result = await this.pollKugouQrStatus(base, key, 60)
       if (result.success) {
-        // 组装完整 cookie
+        // 先立刻回复，抢占 OneBot 响应窗口，避免后续接口慢导致用户只看到超时的失败提示
+        await this.reply('酷狗扫码成功，正在生成登录信息...').catch(() => {})
         const fullCookie = await this.buildKugouFullCookie(base, result)
         setServiceConfig('kugou', {
           cookie: fullCookie.cookie
         })
-        await this.sendLoginStatusCard(base, '酷狗', fullCookie.cookie)
-
-
+        await this.sendLoginStatusCard(base, '酷狗', fullCookie.cookie, fullCookie.userid)
       } else {
         await this.reply('酷狗登录失败：' + (result.message || '超时'))
       }
@@ -183,7 +180,7 @@ export class NcmLogin extends plugin {
     while (Date.now() - start < timeout * 1000) {
       await this.sleep(3000)
       try {
-        const res = await fetch(base + '/login/qr/check?key=' + key + '&timestamp=' + Date.now())
+        const res = await fetchTimeout(base + '/login/qr/check?key=' + key + '&timestamp=' + Date.now(), {}, 8000)
         const data = await res.json()
         const payload = data?.body?.data || data?.data || {}
         const status = Number(payload?.status ?? data?.body?.status ?? data?.status)
@@ -198,10 +195,10 @@ export class NcmLogin extends plugin {
         }
       } catch (e) {}
     }
-    return { success: false, message: '\u767b\u5f55\u8d85\u65f6' }
+    return { success: false, message: '登录超时' }
   }
 
-  /** \u7ec4\u88c5\u5b8c\u6574\u7684\u914b\u72d7 cookie */
+  /** 组装完整的酷狗 cookie（各接口均设超时，单个失败不阻塞整体流程） */
   async buildKugouFullCookie(base, loginResult) {
     let token = loginResult.token || ''
     let userid = loginResult.userid || ''
@@ -216,19 +213,20 @@ export class NcmLogin extends plugin {
     if (userid) cookieParts.push('userid=' + userid)
 
     try {
-      const userRes = await fetch(base + '/user/detail?timestamp=' + Date.now(), {
+      const userRes = await fetchTimeout(base + '/user/detail?timestamp=' + Date.now(), {
         headers: { Cookie: cookieParts.join('; ') }
-      })
+      }, 10000)
       const userData = await userRes.json()
-      const uid = userData?.body?.data?.userid || userData?.data?.userid || userid
-      nickname = userData?.body?.data?.nickname || userData?.data?.nickname || ''
+      const d = userData?.body?.data || userData?.data || {}
+      const uid = d.userid || d.user_id || d.uid || userid
+      nickname = d.nickname || d.k_nickname || ''
       if (uid) userid = String(uid)
     } catch (e) {}
 
     try {
-      const tokenRes = await fetch(base + '/login/token?token=' + token + '&userid=' + userid + '&timestamp=' + Date.now(), {
+      const tokenRes = await fetchTimeout(base + '/login/token?token=' + token + '&userid=' + userid + '&timestamp=' + Date.now(), {
         headers: { Cookie: cookieParts.join('; ') }
-      })
+      }, 10000)
       const tokenData = await tokenRes.json()
       const newToken = tokenData?.body?.data?.token || tokenData?.data?.token
       if (newToken) token = newToken
@@ -237,9 +235,9 @@ export class NcmLogin extends plugin {
     } catch (e) {}
 
     try {
-      const devRes = await fetch(base + '/register/dev', {
+      const devRes = await fetchTimeout(base + '/register/dev', {
         headers: { Cookie: cookieParts.join('; ') }
-      })
+      }, 10000)
       const devData = await devRes.json()
       dfid = devData?.body?.data?.dfid || devData?.data?.dfid || ''
       const devCookie = devData?.body?.cookie || devData?.cookie
@@ -269,8 +267,8 @@ export class NcmLogin extends plugin {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
-  /** 登录成功后发送状态信息 */
-  async sendLoginStatusCard(base, platform, cookie) {
+  /** 登录成功后发送状态信息（knownUid：登录阶段已获取的 uid，避免状态接口取不到时显示未知） */
+  async sendLoginStatusCard(base, platform, cookie, knownUid = '') {
     const platformMap = {
       '网易云': { tpl: 'ncm-status', fetch: 'ncm' },
       '酷狗': { tpl: 'kugou-status', fetch: 'kugou' }
@@ -285,7 +283,7 @@ export class NcmLogin extends plugin {
       const statusInst = new NcmStatus()
       let cardData
       if (info.fetch === 'kugou') {
-        cardData = await statusInst.fetchKugouStatus(base, cookie)
+        cardData = await statusInst.fetchKugouStatus(base, cookie, knownUid)
       } else if (info.fetch === 'ncm') {
         cardData = await statusInst.fetchNcmStatus(base, cookie)
       }
@@ -296,9 +294,9 @@ export class NcmLogin extends plugin {
     } catch (e) {
       logger.warn('[NCM-plugin] 登录后渲染状态卡失败:', e.message)
       try {
-        const ur = await fetch(base + '/user/detail?timestamp=' + Date.now(), {
+        const ur = await fetchTimeout(base + '/user/detail?timestamp=' + Date.now(), {
           headers: { Cookie: cookie || '' }
-        })
+        }, 10000)
         const ud = await ur.json()
         const p = ud?.body?.data || ud?.data || {}
         const nick = p.nickname || p.name || '未知'
@@ -308,6 +306,4 @@ export class NcmLogin extends plugin {
       }
     }
   }
-
-
 }

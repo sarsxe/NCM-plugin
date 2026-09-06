@@ -56,7 +56,7 @@ export class NcmStatus extends plugin {
     return true
   }
 
-  async fetchKugouStatus(base, cookie) {
+  async fetchKugouStatus(base, cookie, knownUid) {
     const [detailRes, vipRes] = await Promise.all([
       fetch(base + '/user/detail?timestamp=' + Date.now(), { headers: { Cookie: cookie } }),
       fetch(base + '/user/vip/detail?timestamp=' + Date.now(), { headers: { Cookie: cookie } }).catch(() => null)
@@ -75,7 +75,7 @@ export class NcmStatus extends plugin {
       .filter(v => Number(v?.is_vip) === 1)
       .sort((a, b) => (vipPriority[String(b?.product_type || '').toLowerCase()] || 0) - (vipPriority[String(a?.product_type || '').toLowerCase()] || 0))[0]
     // 酷狗用户详情接口不返回用户ID，从 cookie 中提取 userid
-    const userid = detail.userid || detail.uid || extractCookieVal(cookie, 'userid') || '未知'
+    const userid = knownUid || detail.userid || detail.user_id || detail.uid || extractCookieVal(cookie, 'userid') || '未知'
     const nickname = detail.nickname || detail.k_nickname || '酷狗用户'
     const avatar = detail.pic || detail.k_pic || detail.fx_pic || ''
     const avatarUrl = normalizeAvatar(avatar, 'kugou')
