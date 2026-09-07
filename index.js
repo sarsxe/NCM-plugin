@@ -1,4 +1,7 @@
 import fs from 'node:fs'
+
+// 预加载 sharp，避免 guoba 加载时因依赖未就绪而失败
+import('sharp').catch(() => {})
 import { startNcmApiService } from './lib/service.js'
 import { ensureVendor, vendorInstalledVersion } from './lib/vendor.js'
 
@@ -50,6 +53,26 @@ const files = fs.existsSync(appDir)
 
 let ret = files.map(file => import('./apps/' + file))
 ret = await Promise.allSettled(ret)
+
+// 对加载失败的模块进行重试（可能是依赖正在安装）
+const failedModules = []
+for (let i in files) {
+  if (ret[i].status !== 'fulfilled') {
+    failedModules.push({ index: i, file: files[i], error: ret[i].reason })
+  }
+}
+
+if (failedModules.length > 0) {
+  // 等待 2 秒后重试一次
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  for (const { index, file } of failedModules) {
+    try {
+      ret[index] = { status: 'fulfilled', value: await import('./apps/' + file) }
+    } catch (err) {
+      ret[index] = { status: 'rejected', reason: err }
+    }
+  }
+}
 
 let apps = {}
 for (let i in files) {

@@ -5,7 +5,7 @@ import {
   restartService,
   getStatus
 } from '../lib/depManager.js'
-import { vendorStatus } from '../lib/vendor.js'
+import { vendorStatus, vendorInstall } from '../lib/vendor.js'
 
 export class ncmDep extends plugin {
   constructor() {
