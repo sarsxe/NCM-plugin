@@ -3,6 +3,7 @@ import path from 'node:path'
 import { exec, execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { updateKugou, checkKugouDeps, getKugouVersion } from '../lib/kugou-updater.js'
+import { ensureVendor, vendorInstall, vendorStatus } from '../lib/vendor.js'
 
 const pluginDir = 'NCM-plugin'
 const pluginPath = fileURLToPath(new URL('../', import.meta.url))
@@ -89,6 +90,7 @@ export class update extends plugin {
       rule: [
         { reg: '^#*(NCM|ncm)(插件)?版本$', fnc: 'version' },
         { reg: '^#*(NCM|ncm)(插件)?(强制更新|更新)$', fnc: 'ncmUpdate' },
+        { reg: '^#*(NCM|ncm)(插件)?(强制)?更新api$', fnc: 'ncmUpdateApi' },
         { reg: '^#*(NCM|ncm)(插件)?更新酷狗(强制)?$', fnc: 'kugouUpdateOnly' }
       ]
     })
@@ -194,13 +196,13 @@ export class update extends plugin {
     const pullOutput = String(pullRet.stdout || '') + '\n' + String(pullRet.stderr || '')
     const pluginUpdated = !/Already up[ -]to[ -]date|已经是最新/i.test(pullOutput)
 
-    const kugouResult = await this.processKugouUpdate(isForce)
+    const kugouResult = { success: true, updated: false, localVersion: null, upstreamVersion: null }
 
     await this.checkAndFixDeps()
 
     const time = this.getTime()
     if (!pluginUpdated && !kugouResult.updated) {
-      await this.reply('NCM-plugin 与内置酷狗API均已是最新版本，最后检查时间：' + time)
+      await this.reply('NCM-plugin 已是最新版本，最后检查时间：' + time)
       if (backupSuccess) {
         try {
           await deleteFolderRecursive(tempBackupDir)
@@ -211,7 +213,7 @@ export class update extends plugin {
       return true
     }
 
-    const summary = ['NCM-plugin 更新完成', '最后更新时间：' + time]
+    const summary = ['NCM-plugin 插件更新完成', '最后更新时间：' + time]
     if (pluginUpdated) summary.push('插件本体：已更新')
     if (kugouResult.updated) {
       summary.push('内置酷狗API：' + (kugouResult.localVersion || 'unknown') + ' → ' + (kugouResult.upstreamVersion || 'unknown'))
@@ -253,6 +255,33 @@ export class update extends plugin {
     await this.reply(result.updated
       ? result.message + '\n依赖已安装，重启 Yunzai 或重载服务后生效'
       : result.message)
+    return true
+  }
+
+  async ncmUpdateApi() {
+    if (!this.e.isMaster) {
+      await this.reply('您无权操作')
+      return true
+    }
+    const force = this.e.msg.includes('强制')
+    await this.reply('正在更新API内环境（vendor)，请稍等')
+    const vendorResult = await ensureVendor({ force })
+    if (!vendorResult.success) {
+      await this.reply('vendor 内环境更新失败：' + (vendorResult.error || '未知错误'))
+      return false
+    }
+    await this.reply('vendor 内环境已就绪')
+    const kugouResult = await this.processKugouUpdate(force)
+    await this.checkAndFixDeps()
+    const time = this.getTime()
+    const summary = ['NCM-plugin API 更新完成', '最后更新时间：' + time]
+    if (kugouResult.updated) {
+      summary.push('内置酷狗API：' + (kugouResult.localVersion || 'unknown') + ' → ' + (kugouResult.upstreamVersion || 'unknown'))
+    } else if (kugouResult.success) {
+      summary.push('内置酷狗API：已是最新 ' + (kugouResult.upstreamVersion || ''))
+    }
+    summary.push(kugouResult.success ? '依赖已安装并自检完成，重启 Yunzai 后生效' : '注意：酷狗API更新失败，详情见上方日志')
+    await this.reply(summary.join('\n'))
     return true
   }
 

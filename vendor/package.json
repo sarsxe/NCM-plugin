@@ -1,0 +1,20 @@
+{
+  "name": "ncm-plugin-vendor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NCM-plugin vendor env",
+  "dependencies": {
+    "axios": "^1.20.0",
+    "big-integer": "^1.6.52",
+    "body-parser": "^1.20.1",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "NeteaseCloudMusicApi": "^4.32.0",
+    "node-forge": "^1.4.0",
+    "pako": "^2.2.0",
+    "qrcode": "^1.5.4",
+    "safe-decode-uri-component": "^1.2.1",
+    "url": "^0.11.4"
+  }
+}

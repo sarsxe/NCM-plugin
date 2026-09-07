@@ -1,20 +1,17 @@
 import fs from 'node:fs'
 import { startNcmApiService } from './lib/service.js'
+import { ensureVendor, vendorInstalledVersion } from './lib/vendor.js'
 
 const pluginDir = 'NCM-plugin'
 const appDir = './plugins/' + pluginDir + '/apps'
 const pluginPath = './plugins/' + pluginDir
 
 async function ensureDependency() {
-  try {
-    await import('NeteaseCloudMusicApi')
-    return true
-  } catch (e) {
-    return false
-  }
+  return vendorInstalledVersion('NeteaseCloudMusicApi') !== null
 }
 
 async function initService() {
+  await ensureVendor()
   const hasDep = await ensureDependency()
   if (!hasDep) {
     logger.warn('[' + pluginDir + '] 未检测到 NeteaseCloudMusicApi，请使用 #ncm安装 指令安装依赖')

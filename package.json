@@ -1,6 +1,6 @@
 {
   "name": "NCM-plugin",
-  "version": "1.14.54.1",
+  "version": "1.14.55.0",
   "description": "NCM-plugin: DualMusic·API for Yunzai-Bot",
   "type": "module",
   "main": "index.js",
@@ -20,9 +20,6 @@
   "author": "sarsxe",
   "license": "MIT",
   "dependencies": {
-    "NeteaseCloudMusicApi": "^4.32.0",
-    "express": "4.18.2",
-    "safe-decode-uri-component": "^1.2.1",
     "sharp": "^0.35.3"
   },
   "overrides": {
@@ -31,5 +28,16 @@
     "degenerator": "^5.0.0",
     "@tootallnate/once": "^3.0.0",
     "pac-resolver": "^7.0.0"
-  }
+  },
+  "files": [
+    "apps",
+    "lib",
+    "guoba",
+    "resources",
+    "vendor/package.json",
+    "index.js",
+    "start.js",
+    "guoba.support.js",
+    "README.md"
+  ]
 }

@@ -5,6 +5,7 @@ import {
   restartService,
   getStatus
 } from '../lib/depManager.js'
+import { vendorStatus } from '../lib/vendor.js'
 
 export class ncmDep extends plugin {
   constructor() {
@@ -66,50 +67,26 @@ export class ncmDep extends plugin {
       await this.reply('您无权操作')
       return true
     }
-
-    const current = getInstalledVersion()
-    await this.reply('正在查询最新版本...')
-    const latest = getLatestVersion()
-
-    if (!latest) {
-      await this.reply('查询最新版本失败，请检查网络连接')
-      return true
-    }
-
-    if (current === latest) {
-      await this.reply('当前已是最新版本：' + current)
-      return true
-    }
-
-    await this.reply('发现新版本：' + latest + (current ? '（当前：' + current + '）' : '') + '\n正在更新...')
-    const result = installVersion(latest)
+    const result = await vendorInstall('NeteaseCloudMusicApi@latest')
     if (!result.success) {
       await this.reply('更新失败：' + (result.error || '未知错误'))
       return true
     }
-
-    const after = getInstalledVersion()
-    await this.reply('更新完成，当前版本：' + (after || 'unknown'))
-
+    await this.reply('更新完成，当前版本：' + (result.version || 'unknown'))
     await this.reply('正在重启网易云API服务...')
     const restart = await restartService()
-    if (restart.success) {
-      await this.reply('服务重启成功')
-    } else {
-      await this.reply('服务重启失败：' + (restart.error || '未知错误'))
-    }
+    await this.reply(restart.success ? '服务重启成功' : '服务重启失败：' + (restart.error || ''))
     return true
   }
 
   async apiVersion() {
-    const current = getInstalledVersion()
-    const latest = getLatestVersion()
-    const msg = [
-      'NeteaseCloudMusicApi 版本信息',
-      '当前版本：' + (current || '未安装'),
-      '最新版本：' + (latest || '查询失败')
-    ].join('\n')
-    await this.reply(msg)
+    const status = vendorStatus()
+    const lines = ['vendor 内环境版本信息', '']
+    for (const [name, info] of Object.entries(status)) {
+      const mark = info.ok ? '✓' : '✗'
+      lines.push(mark + ' ' + name + ': ' + (info.installed || '未安装') + ' (要求: ' + info.range + ')')
+    }
+    await this.reply(lines.join('\n'))
     return true
   }
 }
